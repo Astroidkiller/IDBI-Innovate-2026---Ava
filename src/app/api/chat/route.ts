@@ -24,16 +24,30 @@ export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
 
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: "Invalid request payload. 'messages' must be a non-empty array." }, { status: 400 });
+    }
+
     const model = genAI.getGenerativeModel({
       model: "gemini-3.5-flash",
       systemInstruction: systemPrompt,
     });
 
+    const historyData = messages.slice(0, -1).map((m: { role: string; content: string }) => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }],
+    }));
+
+    // Gemini API requires the history array to start with a 'user' role
+    if (historyData.length > 0 && historyData[0].role === "model") {
+      historyData.unshift({
+        role: "user",
+        parts: [{ text: "Hello." }],
+      });
+    }
+
     const chat = model.startChat({
-      history: messages.slice(0, -1).map((m: { role: string; content: string }) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }],
-      })),
+      history: historyData,
     });
 
     const lastMessage = messages[messages.length - 1];

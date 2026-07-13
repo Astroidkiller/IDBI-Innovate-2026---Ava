@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
   try {
     const { scenarioKey } = await req.json();
 
+    if (typeof scenarioKey !== "string" || !scenarioKey) {
+      return NextResponse.json({ error: "Invalid request payload. 'scenarioKey' must be a valid string." }, { status: 400 });
+    }
+
     const prompt = scenarios[scenarioKey as keyof typeof scenarios];
     if (!prompt) {
       return NextResponse.json({ error: "Invalid scenario" }, { status: 400 });

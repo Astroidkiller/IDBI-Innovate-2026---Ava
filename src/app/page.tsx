@@ -149,7 +149,7 @@ export default function AvaPage() {
     setLoading(true);
     setAvatarState("thinking");
     try {
-      const res  = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: next }) });
+      const res  = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer idbi-prototype-auth-token" }, body: JSON.stringify({ messages: next }) });
       const data = await res.json();
       const reply = data.reply ?? "I'm having trouble connecting. Please try again.";
       setMessages(p => [...p, { role: "assistant", content: reply }]);
@@ -175,7 +175,7 @@ export default function AvaPage() {
     setLoading(true);
     setAvatarState("thinking");
     try {
-      const res  = await fetch("/api/scenarios", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenarioKey: key }) });
+      const res  = await fetch("/api/scenarios", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer idbi-prototype-auth-token" }, body: JSON.stringify({ scenarioKey: key }) });
       const data = await res.json();
       const reply = data.reply ?? "Unable to load scenario.";
       setMessages(p => [...p, { role: "assistant", content: reply }]);
@@ -212,25 +212,25 @@ export default function AvaPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background text-foreground selection:bg-white/20">
+    <div className="min-h-[100dvh] flex flex-col bg-background text-foreground selection:bg-idbi-green/20">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-4 md:px-8 h-16 bg-background/90 backdrop-blur-md border-b border-border-subtle">
+      <header className="sticky top-0 z-50 flex items-center justify-between px-4 md:px-8 h-16 bg-surface/80 backdrop-blur-md border-b border-border-subtle shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded flex items-center justify-center text-background text-xs font-bold bg-foreground">
+          <div className="w-8 h-8 rounded flex items-center justify-center bg-idbi-green text-white text-xs font-bold shadow-sm">
             IB
           </div>
           <div>
-            <p className="text-xs font-semibold tracking-tight text-white leading-none mt-0.5">IDBI Wealth</p>
+            <p className="text-xs font-semibold tracking-tight text-foreground leading-none mt-0.5">IDBI Wealth</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border-strong">
-          <Sparkle weight="fill" size={14} className="text-white" />
-          <span className="text-xs font-medium text-white">AI Advisory</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-hover border border-border-subtle">
+          <Sparkle weight="fill" size={14} className="text-idbi-green" />
+          <span className="text-xs font-medium text-foreground">AI Advisory</span>
         </div>
 
-        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-surface border border-border-strong text-white">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-surface-hover border border-border-subtle text-foreground">
           RS
         </div>
       </header>
@@ -243,40 +243,53 @@ export default function AvaPage() {
           <div className="md:col-span-5 space-y-8">
 
             {/* Avatar Section */}
-            <div className="relative rounded-lg overflow-hidden bg-surface border border-border-subtle p-6">
+            <div className="relative rounded-lg overflow-hidden bg-surface border border-border-subtle p-6 shadow-sm">
               <div className="flex items-start gap-6 relative z-10">
                 <div className="relative flex-shrink-0">
-                  <motion.div animate={shouldReduceMotion ? {} : (avatarState === "talking" ? { y: [0, -2, 0, -1, 0] } : avatarState === "thinking" ? { opacity: [1, 0.7, 1] } : { y: [0, -1, 0] })}
-                    transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.4 : avatarState === "thinking" ? 1.5 : 4, ease: "linear" }}>
+                  <div className="relative flex flex-col items-center">
                     <img src="/ava-avatar.jpg" alt="Ava AI Advisor"
-                      className="w-[80px] h-[80px] rounded object-cover object-top filter grayscale transition-all duration-300"
+                      className="w-[80px] h-[80px] rounded object-cover object-top transition-all duration-300"
                       style={{
-                        border: `1px solid ${avatarState === "talking" ? "#ffffff" : "transparent"}`,
-                        opacity: avatarState === "idle" ? 0.8 : 1
+                        border: `2px solid ${avatarState === "talking" ? "var(--color-idbi-green)" : avatarState === "thinking" ? "var(--color-idbi-orange)" : "var(--color-border-subtle)"}`,
+                        opacity: avatarState === "idle" ? 0.9 : 1
                       }}
                     />
-                    <div className="mt-3 flex items-center gap-2 text-[11px] text-white font-medium uppercase tracking-widest">
-                      <motion.div className="w-1.5 h-1.5 rounded-full bg-white" animate={avatarState !== "idle" ? { opacity: [1, 0, 1] } : { opacity: 1 }} transition={{ repeat: Infinity, duration: 0.8 }} />
-                      {avatarState === "talking" ? "Speaking" : avatarState === "thinking" ? "Thinking" : "Ready"}
+                    <div className="mt-3 h-6 flex items-center justify-center">
+                      {avatarState === "talking" ? (
+                        <div className="flex items-center gap-1 h-3">
+                          {[0, 1, 2, 3, 4].map(i => (
+                            <motion.div key={i} className="w-1 bg-idbi-green rounded-full"
+                              animate={{ height: ["4px", "14px", "4px"] }}
+                              transition={{ repeat: Infinity, duration: 0.5 + (i % 2) * 0.2, delay: i * 0.15, ease: "easeInOut" }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-1.5 text-[10px] text-foreground font-bold uppercase tracking-widest bg-surface-hover px-2 py-1 rounded border border-border-subtle">
+                          <motion.div className="w-1.5 h-1.5 rounded-full" style={{ background: avatarState === "idle" ? "var(--color-text-muted)" : "var(--color-idbi-orange)" }} animate={avatarState === "thinking" ? { opacity: [1, 0, 1] } : { opacity: 1 }} transition={{ repeat: Infinity, duration: 0.8 }} />
+                          {avatarState === "thinking" ? "Thinking" : "Ready"}
+                        </div>
+                      )}
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-white font-medium text-3xl tracking-tighter mb-1">Ava.</h1>
+                  <h1 className="text-foreground font-medium text-3xl tracking-tighter mb-1">Ava.</h1>
                   <p className="text-sm text-text-muted font-normal mb-6">IDBI Autonomous Wealth Agent</p>
 
                   <div className="flex items-center gap-2">
                     <button onClick={() => voiceOn ? (speaking ? stopSpeak() : setVoiceOn(false)) : setVoiceOn(true)}
                       aria-label={speaking ? "Stop speaking" : voiceOn ? "Disable voice" : "Enable voice"}
-                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded bg-surface-hover hover:bg-surface-active text-xs font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-white">
+                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-idbi-green"
+                      style={{ background: voiceOn ? "var(--color-idbi-green)" : "var(--color-surface-hover)", color: voiceOn ? "#ffffff" : "var(--color-foreground)", border: voiceOn ? "1px solid var(--color-idbi-green)" : "1px solid var(--color-border-subtle)" }}>
                       {voiceOn ? <SpeakerHigh size={16} /> : <SpeakerX size={16} />}
                       {speaking ? "Stop" : voiceOn ? "Voice On" : "Voice Off"}
                     </button>
                     <button onClick={toggleListen}
                       aria-label={listening ? "Stop listening" : "Start voice input"}
-                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-white"
-                      style={{ background: listening ? "#ffffff" : "transparent", color: listening ? "#000000" : "#ffffff", border: listening ? "1px solid transparent" : "1px solid var(--color-border-strong)" }}>
+                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-idbi-orange border border-border-subtle"
+                      style={{ background: listening ? "rgba(239,68,68,0.1)" : "var(--color-surface-hover)", color: listening ? "#ef4444" : "var(--color-foreground)", borderColor: listening ? "rgba(239,68,68,0.3)" : "var(--color-border-subtle)" }}>
                       {listening ? <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}><Microphone size={16} /></motion.div> : <MicrophoneSlash size={16} />}
                       {listening ? "Listening" : "Speak"}
                     </button>
@@ -287,7 +300,7 @@ export default function AvaPage() {
 
             {/* Security Badge */}
             <div className="flex items-start gap-3">
-              <ShieldCheck size={18} className="text-text-muted flex-shrink-0 mt-0.5" />
+              <ShieldCheck size={18} className="text-idbi-green flex-shrink-0 mt-0.5" />
               <p className="text-sm text-text-muted leading-relaxed">
                 Bank-grade secure. No real financial data is shared. Prototype environment.
               </p>
@@ -301,9 +314,9 @@ export default function AvaPage() {
                   const Icon = s.icon;
                   return (
                     <button key={s.key} onClick={() => triggerScenario(s.key)} disabled={loading}
-                      className="flex flex-col items-start p-4 rounded-lg text-left transition-colors hover:bg-surface disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-white border border-border-subtle hover:border-border-strong">
-                      <Icon size={18} className="mb-4 text-white" />
-                      <p className="text-white text-sm font-medium mb-1">{s.label}</p>
+                      className="flex flex-col items-start p-4 rounded-lg bg-surface text-left transition-colors hover:bg-surface-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-idbi-green border border-border-subtle hover:border-border-strong shadow-sm">
+                      <Icon size={18} style={{ color: s.color }} className="mb-4" />
+                      <p className="text-foreground text-sm font-medium mb-1">{s.label}</p>
                       <p className="text-xs text-text-muted">{s.sub}</p>
                     </button>
                   );
@@ -329,8 +342,8 @@ export default function AvaPage() {
                     role="tab"
                     className="pb-3 text-sm font-medium transition-colors focus-visible:outline-none"
                     style={{
-                      color: tab === k ? "#ffffff" : "var(--color-text-muted)",
-                      borderBottom: tab === k ? "2px solid #ffffff" : "2px solid transparent",
+                      color: tab === k ? "var(--color-foreground)" : "var(--color-text-muted)",
+                      borderBottom: tab === k ? "2px solid var(--color-foreground)" : "2px solid transparent",
                     }}>
                     {label}
                   </button>
@@ -347,9 +360,9 @@ export default function AvaPage() {
                         { label: "Monthly Flow", value: "₹1.25L" },
                         { label: "Savings Rate", value: "14%" },
                       ].map(({ label, value }) => (
-                        <div key={label} className="p-5 rounded-lg border border-border-subtle">
+                        <div key={label} className="p-5 rounded-lg bg-surface border border-border-subtle shadow-sm">
                           <p className="text-xs text-text-muted mb-2">{label}</p>
-                          <p className="text-white font-medium text-xl tracking-tight">{value}</p>
+                          <p className="text-foreground font-medium text-xl tracking-tight">{value}</p>
                         </div>
                       ))}
                     </div>
@@ -357,13 +370,13 @@ export default function AvaPage() {
                       {mockGoals.map(goal => {
                         const pct = Math.round((goal.current / goal.target) * 100);
                         return (
-                          <div key={goal.id} className="p-5 rounded-lg border border-border-subtle">
+                          <div key={goal.id} className="p-5 rounded-lg bg-surface border border-border-subtle shadow-sm">
                             <div className="flex items-center justify-between mb-4">
-                              <span className="text-white text-sm font-medium">{goal.name}</span>
+                              <span className="text-foreground text-sm font-medium">{goal.name}</span>
                               <span className="text-xs font-mono text-text-muted">{pct}%</span>
                             </div>
                             <div className="w-full h-1 bg-surface-hover mb-3">
-                              <motion.div className="h-full bg-white"
+                              <motion.div className="h-full bg-idbi-green"
                                 initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: "easeOut" }} />
                             </div>
                             <div className="flex justify-between text-xs text-text-muted font-mono">
@@ -381,20 +394,20 @@ export default function AvaPage() {
                 {tab === "portfolio" && (
                   <motion.div key="portfolio" initial={shouldReduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="space-y-3">
                     {mockHoldings.map(h => (
-                      <div key={h.name} className="flex items-center justify-between p-4 rounded-lg border border-border-subtle group hover:border-border-strong transition-colors">
+                      <div key={h.name} className="flex items-center justify-between p-4 rounded-lg bg-surface border border-border-subtle group hover:border-border-strong transition-colors shadow-sm">
                         <div className="flex-1">
-                          <p className="text-white text-sm font-medium mb-1">{h.name}</p>
+                          <p className="text-foreground text-sm font-medium mb-1">{h.name}</p>
                           <div className="flex items-center gap-3">
                             <div className="w-24 h-1 bg-surface-hover">
-                              <motion.div className="h-full bg-text-muted"
+                              <motion.div className="h-full" style={{ background: h.color }}
                                 initial={{ width: 0 }} animate={{ width: `${h.percent}%` }} transition={{ duration: 0.6 }} />
                             </div>
                             <span className="text-xs text-text-muted font-mono">{h.percent}%</span>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-white font-mono text-sm mb-1">{fmt(h.value)}</p>
-                          <p className="text-xs font-mono text-text-muted">+{h.returns}%</p>
+                          <p className="text-foreground font-mono text-sm mb-1">{fmt(h.value)}</p>
+                          <p className="text-xs font-mono text-idbi-green">+{h.returns}%</p>
                         </div>
                       </div>
                     ))}
@@ -404,26 +417,28 @@ export default function AvaPage() {
                 {/* Transactions */}
                 {tab === "transactions" && (
                   <motion.div key="transactions" initial={shouldReduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="space-y-3">
-                    {mockTransactions.map((tx, i) => (
-                      <div key={i} className="flex items-center justify-between py-3 border-b border-border-subtle last:border-0">
-                        <div>
-                          <p className="text-white text-sm font-medium">{tx.merchant}</p>
-                          <p className="text-xs text-text-muted mt-1">{tx.date}</p>
+                    <div className="bg-surface border border-border-subtle rounded-lg shadow-sm">
+                      {mockTransactions.map((tx, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 border-b border-border-subtle last:border-0" style={{ background: tx.spike ? "rgba(239,68,68,0.03)" : "transparent" }}>
+                          <div>
+                            <p className="text-foreground text-sm font-medium">{tx.merchant}</p>
+                            <p className="text-xs text-text-muted mt-1">{tx.date}</p>
+                          </div>
+                          <span className="text-sm font-mono" style={{ color: tx.type === "credit" ? "var(--color-idbi-green)" : "var(--color-foreground)" }}>
+                            {tx.type === "credit" ? "+" : "-"}{fmt(tx.amount)}
+                          </span>
                         </div>
-                        <span className="text-sm font-mono text-white">
-                          {tx.type === "credit" ? "+" : "-"}{fmt(tx.amount)}
-                        </span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
             {/* Chat Interface */}
-            <div className="flex flex-col h-[400px] border border-border-strong rounded-lg bg-surface">
-              <div className="px-5 py-4 border-b border-border-subtle bg-background">
-                <p className="text-xs font-semibold uppercase tracking-widest text-white">Agent Thread</p>
+            <div className="flex flex-col h-[450px] border border-border-strong rounded-lg bg-surface shadow-sm">
+              <div className="px-5 py-4 border-b border-border-subtle bg-surface-hover rounded-t-lg">
+                <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">Agent Thread</p>
               </div>
 
               <div className="space-y-6 flex-1 overflow-y-auto p-5">
@@ -432,10 +447,14 @@ export default function AvaPage() {
                     <motion.div key={i} initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
                       className={`flex gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       {msg.role === "assistant" && (
-                        <div className="w-6 h-6 rounded flex-shrink-0 bg-white text-black flex items-center justify-center text-[10px] font-bold mt-1">A</div>
+                        <div className="w-6 h-6 rounded flex-shrink-0 bg-idbi-green text-white flex items-center justify-center text-[10px] font-bold mt-1">A</div>
                       )}
-                      <div className="max-w-[85%] text-sm leading-relaxed"
-                        style={{ color: msg.role === "user" ? "#a1a1aa" : "#ffffff" }}>
+                      <div className="max-w-[85%] text-sm leading-relaxed px-4 py-3 rounded-lg border"
+                        style={{ 
+                          background: msg.role === "user" ? "var(--color-idbi-green)" : "var(--color-surface-hover)", 
+                          color: msg.role === "user" ? "#ffffff" : "var(--color-foreground)",
+                          borderColor: msg.role === "user" ? "transparent" : "var(--color-border-subtle)"
+                        }}>
                         {msg.content}
                       </div>
                     </motion.div>
@@ -444,8 +463,8 @@ export default function AvaPage() {
 
                 {loading && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-4 items-start">
-                    <div className="w-6 h-6 rounded flex-shrink-0 bg-white text-black flex items-center justify-center text-[10px] font-bold mt-1">A</div>
-                    <div className="flex gap-1.5 mt-2">
+                    <div className="w-6 h-6 rounded flex-shrink-0 bg-idbi-green text-white flex items-center justify-center text-[10px] font-bold mt-1">A</div>
+                    <div className="flex gap-1.5 mt-4 px-4">
                       {[0, 1, 2].map(j => (
                         <motion.div key={j} className="w-1.5 h-1.5 rounded-full bg-text-muted"
                           animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: j * 0.2 }} />
@@ -457,20 +476,20 @@ export default function AvaPage() {
               </div>
 
               {/* Input Bar */}
-              <div className="p-4 border-t border-border-subtle bg-background">
+              <div className="p-4 border-t border-border-subtle bg-surface-hover rounded-b-lg">
                 <form onSubmit={handleSubmit} className="flex items-center gap-3">
                   <button type="button" onClick={toggleListen} aria-label={listening ? "Stop recording" : "Record voice message"}
-                    className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-white"
-                    style={{ background: listening ? "#ffffff" : "var(--color-surface)", color: listening ? "#000000" : "var(--color-text-muted)" }}>
+                    className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-idbi-green border border-border-subtle"
+                    style={{ background: listening ? "rgba(239,68,68,0.1)" : "var(--color-surface)", color: listening ? "#ef4444" : "var(--color-text-muted)" }}>
                     <Microphone size={18} />
                   </button>
 
                   <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type a message..." disabled={loading}
-                    className="flex-1 text-white text-sm outline-none px-4 py-2.5 h-10 rounded transition-colors bg-surface border border-border-strong focus:border-white focus-visible:ring-1 focus-visible:ring-white"
+                    className="flex-1 text-foreground text-sm outline-none px-4 py-2.5 h-10 rounded transition-colors bg-surface border border-border-strong focus:border-idbi-green focus-visible:ring-1 focus-visible:ring-idbi-green"
                   />
 
                   <button type="submit" disabled={loading || !input.trim()} aria-label="Send message"
-                    className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-white bg-white text-black hover:bg-zinc-200">
+                    className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-idbi-green bg-idbi-green text-white hover:bg-[#00705a]">
                     <PaperPlaneTilt size={16} weight="fill" />
                   </button>
                 </form>
