@@ -1,560 +1,604 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  Send,
-  Mic,
-  MicOff,
-  TrendingUp,
-  TrendingDown,
+  PaperPlaneTilt,
+  Microphone,
+  MicrophoneSlash,
+  TrendUp,
+  TrendDown,
   Target,
-  AlertTriangle,
-  PieChart,
-  MessageCircle,
+  Warning,
+  ChartPie,
+  ChatCircleText,
   Car,
-  Volume2,
-  VolumeX,
-  Sparkles,
-  Home as HomeIcon,
+  SpeakerHigh,
+  SpeakerX,
+  Sparkle,
+  House,
   Wallet,
-  BarChart3,
-} from "lucide-react";
+  ChartBar,
+  ArrowUpRight,
+  ShieldCheck,
+} from "@phosphor-icons/react";
 
-const mockProfile = {
-  name: "Rohan Sharma",
-  age: 32,
-  riskAppetite: "Moderate",
-  netWorth: 750000,
-  monthlyIncome: 125000,
-  savingsRate: "Declining",
-};
+// ─── Mock Data ──────────────────────────────────────────────────────────────
 
 const mockHoldings = [
   { name: "Equity Mutual Funds", value: 450000, percent: 60, returns: 12.5, color: "#00836C" },
-  { name: "Fixed Deposits", value: 250000, percent: 33.3, returns: 6.8, color: "#F58220" },
-  { name: "Gold", value: 50000, percent: 6.7, returns: 8.1, color: "#EAB308" },
+  { name: "Fixed Deposits",      value: 250000, percent: 33.3, returns: 6.8,  color: "#F58220" },
+  { name: "Gold",                value: 50000,  percent: 6.7,  returns: 8.1,  color: "#EAB308" },
 ];
 
 const mockGoals = [
-  { id: "goal_1", name: "Home Down Payment", icon: HomeIcon, target: 1500000, current: 600000, deadline: "Dec 2028" },
-  { id: "goal_2", name: "Emergency Fund", icon: Wallet, target: 300000, current: 280000, deadline: "Oct 2026" },
+  { id: "g1", name: "Home Down Payment", icon: House,   target: 1500000, current: 600000,  deadline: "Dec 2028" },
+  { id: "g2", name: "Emergency Fund",    icon: Wallet,  target: 300000,  current: 280000,  deadline: "Oct 2026" },
 ];
 
 const mockTransactions = [
-  { category: "Food & Dining", amount: 4500, merchant: "Zomato", date: "Jul 10", type: "debit" },
-  { category: "Travel", amount: 1200, merchant: "Uber", date: "Jul 9", type: "debit" },
-  { category: "Rent", amount: 25000, merchant: "Landlord", date: "Jul 8", type: "debit" },
-  { category: "Discretionary ⚠️", amount: 18000, merchant: "Apple Store", date: "Jul 5", type: "debit", spike: true },
-  { category: "Salary", amount: 125000, merchant: "Employer", date: "Jul 1", type: "credit" },
+  { cat: "Food & Dining",    amount: 4500,   merchant: "Zomato",      date: "Jul 10", type: "debit",  spike: false },
+  { cat: "Travel",           amount: 1200,   merchant: "Uber",         date: "Jul 9",  type: "debit",  spike: false },
+  { cat: "Rent",             amount: 25000,  merchant: "Landlord",     date: "Jul 8",  type: "debit",  spike: false },
+  { cat: "Discretionary",   amount: 18000,  merchant: "Apple Store",  date: "Jul 5",  type: "debit",  spike: true  },
+  { cat: "Salary",           amount: 125000, merchant: "Employer",     date: "Jul 1",  type: "credit", spike: false },
 ];
 
-const scenarios = [
-  { key: "overspending", label: "Overspending Alert", icon: AlertTriangle, color: "#ef4444", desc: "Spending spike detected" },
-  { key: "rebalancing", label: "Portfolio Review", icon: PieChart, color: "#00836C", desc: "Rebalancing insight" },
-  { key: "goalNudge", label: "Goal Nudge", icon: Target, color: "#F58220", desc: "SIP recommendation" },
-  { key: "carLoan", label: "Car Loan Query", icon: Car, color: "#8B5CF6", desc: "Affordability analysis" },
+const SCENARIOS = [
+  { key: "overspending", label: "Overspending Alert", icon: Warning,      color: "#ef4444", sub: "Spike detected" },
+  { key: "rebalancing",  label: "Portfolio Review",   icon: ChartPie,     color: "#00836C", sub: "Rebalancing insight" },
+  { key: "goalNudge",    label: "Goal Nudge",          icon: Target,       color: "#F58220", sub: "SIP recommendation" },
+  { key: "carLoan",      label: "Car Loan Query",      icon: Car,          color: "#8B5CF6", sub: "Affordability check" },
+] as const;
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface Message { role: "user" | "assistant"; content: string; }
+type AvatarState = "idle" | "thinking" | "talking";
+type Tab = "overview" | "portfolio" | "transactions";
+
+// ─── Female Voice Priority ────────────────────────────────────────────────────
+
+const FEMALE_VOICES = [
+  "Google UK English Female","Google US English Female","Microsoft Aria","Microsoft Jenny",
+  "Microsoft Zira","Microsoft Ava","Samantha","Victoria","Karen","Moira","Tessa",
+  "Fiona","Allison","Ava","Susan","Zira","Aria","Jenny","female","Female",
 ];
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
+function getFemaleVoice(synth: SpeechSynthesis): SpeechSynthesisVoice | null {
+  const voices = synth.getVoices();
+  for (const kw of FEMALE_VOICES) {
+    const hit = voices.find(v => v.name.includes(kw));
+    if (hit) return hit;
+  }
+  return voices.find(v =>
+    v.lang.startsWith("en") &&
+    !["male","guy","david","mark","james","george","daniel","alex"].some(n =>
+      v.name.toLowerCase().includes(n)
+    )
+  ) ?? null;
 }
 
-type AvatarState = "idle" | "thinking" | "talking";
+// ─── Utilities ────────────────────────────────────────────────────────────────
 
-export default function DashboardPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hi Rohan! 👋 I'm Ava, your personal wealth advisor at IDBI Bank. I've analyzed your financial profile and I'm here to help you make smarter money decisions. What's on your mind today?",
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [avatarState, setAvatarState] = useState<AvatarState>("idle");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "portfolio" | "transactions">("overview");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+const fmt = (n: number) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
+export default function AvaPage() {
+  const shouldReduceMotion = useReducedMotion();
+
+  const [messages, setMessages] = useState<Message[]>([{
+    role: "assistant",
+    content: "Hi Rohan! I'm Ava, your personal wealth advisor at IDBI Bank. I've reviewed your financial profile and I'm ready to help you make smarter decisions. What's on your mind today?",
+  }]);
+  const [input,        setInput]        = useState("");
+  const [avatarState,  setAvatarState]  = useState<AvatarState>("idle");
+  const [loading,      setLoading]      = useState(false);
+  const [listening,    setListening]    = useState(false);
+  const [speaking,     setSpeaking]     = useState(false);
+  const [voiceOn,      setVoiceOn]      = useState(true);
+  const [tab,          setTab]          = useState<Tab>("overview");
+
+  const bottomRef    = useRef<HTMLDivElement>(null);
+  const synthRef     = useRef<SpeechSynthesis | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const recogRef     = useRef<any>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      synthRef.current = window.speechSynthesis;
-    }
-  }, []);
-
-  // Female voice names across Chrome, Edge, Safari, Firefox
-  const FEMALE_VOICE_KEYWORDS = [
-    "Google UK English Female",
-    "Google US English Female",
-    "Microsoft Zira",
-    "Microsoft Aria",
-    "Microsoft Jenny",
-    "Microsoft Ava",
-    "Samantha",
-    "Victoria",
-    "Karen",
-    "Moira",
-    "Tessa",
-    "Veena",
-    "Fiona",
-    "Allison",
-    "Ava",
-    "Susan",
-    "Zira",
-    "Aria",
-    "Jenny",
-    "female",
-    "Female",
-    "woman",
-  ];
-
-  const getFemaleVoice = (): SpeechSynthesisVoice | null => {
-    if (!synthRef.current) return null;
-    const voices = synthRef.current.getVoices();
-    // Try each preferred name in order
-    for (const keyword of FEMALE_VOICE_KEYWORDS) {
-      const match = voices.find(v => v.name.includes(keyword));
-      if (match) return match;
-    }
-    // Fallback: any voice with "en" lang that isn't explicitly male
-    const enVoice = voices.find(v =>
-      v.lang.startsWith("en") &&
-      !v.name.toLowerCase().includes("male") &&
-      !v.name.toLowerCase().includes("guy") &&
-      !v.name.toLowerCase().includes("david") &&
-      !v.name.toLowerCase().includes("mark") &&
-      !v.name.toLowerCase().includes("james") &&
-      !v.name.toLowerCase().includes("george") &&
-      !v.name.toLowerCase().includes("daniel") &&
-      !v.name.toLowerCase().includes("alex")
-    );
-    return enVoice || null;
-  };
-
-  // Pre-load voices (Chrome loads them async)
+  // Init synth + preload voices
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const loadVoices = () => synthRef.current?.getVoices();
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
+    synthRef.current = window.speechSynthesis;
+    const load = () => synthRef.current?.getVoices();
+    load();
+    window.speechSynthesis.onvoiceschanged = load;
   }, []);
 
+  // Auto-scroll chat
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  // ── Speak ──────────────────────────────────────────────────────────────────
   const speak = useCallback((text: string) => {
-    if (!voiceEnabled || !synthRef.current) return;
+    if (!voiceOn || !synthRef.current) return;
     synthRef.current.cancel();
     const clean = text.replace(/[*_#`]/g, "").replace(/\n/g, " ");
-    const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.rate = 0.95;   // slightly slower = more natural
-    utterance.pitch = 1.25;  // higher pitch = clearly feminine
-    utterance.volume = 1;
+    const utt = new SpeechSynthesisUtterance(clean);
+    utt.rate   = 0.95;
+    utt.pitch  = 1.25;
+    utt.volume = 1;
+    const voice = getFemaleVoice(synthRef.current);
+    if (voice) utt.voice = voice;
+    utt.onstart = () => { setAvatarState("talking"); setSpeaking(true); };
+    utt.onend   = () => { setAvatarState("idle");    setSpeaking(false); };
+    synthRef.current.speak(utt);
+  }, [voiceOn]);
 
-    const femaleVoice = getFemaleVoice();
-    if (femaleVoice) utterance.voice = femaleVoice;
-
-    utterance.onstart = () => { setAvatarState("talking"); setIsSpeaking(true); };
-    utterance.onend = () => { setAvatarState("idle"); setIsSpeaking(false); };
-    synthRef.current.speak(utterance);
-  }, [voiceEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const stopSpeaking = () => {
+  const stopSpeak = () => {
     synthRef.current?.cancel();
     setAvatarState("idle");
-    setIsSpeaking(false);
+    setSpeaking(false);
   };
 
-  const sendMessage = async (content: string, currentMessages: Message[]) => {
-    const newMessages: Message[] = [...currentMessages, { role: "user", content }];
-    setMessages(newMessages);
-    setIsLoading(true);
+  // ── Send chat ──────────────────────────────────────────────────────────────
+  const sendMessage = async (content: string, history: Message[]) => {
+    const next: Message[] = [...history, { role: "user", content }];
+    setMessages(next);
+    setLoading(true);
     setAvatarState("thinking");
-
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }),
-      });
+      const res  = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: next }) });
       const data = await res.json();
-      const reply = data.reply || "I'm having trouble connecting right now. Please try again.";
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+      const reply = data.reply ?? "I'm having trouble connecting. Please try again.";
+      setMessages(p => [...p, { role: "assistant", content: reply }]);
       speak(reply);
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Connection error. Please try again." }]);
+      setMessages(p => [...p, { role: "assistant", content: "Connection error. Please try again." }]);
       setAvatarState("idle");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
-    const text = input.trim();
+    if (!input.trim() || loading) return;
+    const t = input.trim();
     setInput("");
-    sendMessage(text, messages);
+    sendMessage(t, messages);
   };
 
+  // ── Scenario ───────────────────────────────────────────────────────────────
   const triggerScenario = async (key: string) => {
-    setIsLoading(true);
+    setLoading(true);
     setAvatarState("thinking");
     try {
-      const res = await fetch("/api/scenarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenarioKey: key }),
-      });
+      const res  = await fetch("/api/scenarios", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenarioKey: key }) });
       const data = await res.json();
-      const reply = data.reply || "Unable to load scenario.";
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+      const reply = data.reply ?? "Unable to load scenario.";
+      setMessages(p => [...p, { role: "assistant", content: reply }]);
       speak(reply);
     } catch {
       setAvatarState("idle");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const toggleVoiceInput = () => {
+  // ── Voice input ────────────────────────────────────────────────────────────
+  const toggleListen = () => {
     if (typeof window === "undefined") return;
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return alert("Voice not supported in this browser. Try Chrome.");
-
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-      return;
-    }
-
-    const recognition = new SR();
-    recognition.lang = "en-IN";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognitionRef.current = recognition;
-
-    recognition.onstart = () => setIsListening(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-    };
-    recognition.onend = () => setIsListening(false);
-    recognition.start();
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { alert("Voice input requires Chrome."); return; }
+    if (listening) { recogRef.current?.stop(); setListening(false); return; }
+    const r = new SR();
+    r.lang = "en-IN"; r.continuous = false; r.interimResults = false;
+    r.onstart  = () => setListening(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    r.onresult = (e: any) => setInput(e.results[0][0].transcript);
+    r.onend    = () => setListening(false);
+    recogRef.current = r;
+    r.start();
   };
 
-  const formatCurrency = (n: number) =>
-    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  // ─── Avatar pulse glow ────────────────────────────────────────────────────
+  const glowAnim = shouldReduceMotion ? {} : {
+    scale: avatarState === "talking" ? [1, 1.15, 1] : avatarState === "thinking" ? [1, 1.08, 1] : [1, 1.04, 1],
+    opacity: avatarState === "idle" ? [0.4, 0.6, 0.4] : [0.6, 0.9, 0.6],
+  };
 
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #0d1117 0%, #0f1f1c 50%, #0d1117 100%)" }}>
-      {/* Header */}
-      <header className="border-b border-white/10 px-4 py-3 flex items-center justify-between sticky top-0 z-50" style={{ background: "rgba(13,17,23,0.85)", backdropFilter: "blur(16px)" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm" style={{ background: "linear-gradient(135deg, #00836C, #006654)" }}>
+    <div className="min-h-[100dvh] flex flex-col" style={{ background: "linear-gradient(160deg, #080e0d 0%, #0b1a16 50%, #080e0d 100%)" }}>
+
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-50 flex items-center justify-between px-4 h-14"
+        style={{ background: "rgba(8,14,13,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(0,131,108,0.15)" }}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black"
+            style={{ background: "linear-gradient(135deg, #00836C 0%, #005a4a 100%)", boxShadow: "0 0 12px rgba(0,131,108,0.4)" }}>
             IB
           </div>
           <div>
-            <p className="text-xs text-white/50 leading-none">IDBI Bank</p>
+            <p className="text-[10px] font-medium leading-none" style={{ color: "rgba(255,255,255,0.4)" }}>IDBI Bank</p>
             <p className="text-sm font-semibold text-white leading-none mt-0.5">Digital Wealth</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4" style={{ color: "#F58220" }} />
-          <span className="text-xs font-medium" style={{ color: "#F58220" }}>AI Advisory</span>
+
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+          style={{ background: "rgba(245,130,32,0.12)", border: "1px solid rgba(245,130,32,0.25)" }}>
+          <Sparkle weight="fill" size={12} style={{ color: "#F58220" }} />
+          <span className="text-[11px] font-semibold" style={{ color: "#F58220" }}>AI Advisory</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-green-600 flex items-center justify-center text-xs font-bold text-white">
-            RS
-          </div>
+
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+          style={{ background: "linear-gradient(135deg, #00836C, #F58220)" }}>
+          RS
         </div>
       </header>
 
-      <div className="max-w-md mx-auto flex flex-col h-[calc(100vh-56px)]">
-        {/* Avatar Panel */}
-        <div className="relative px-4 pt-4 pb-2">
-          <div className="rounded-2xl overflow-hidden relative" style={{ background: "linear-gradient(135deg, rgba(0,131,108,0.15), rgba(245,130,32,0.1))", border: "1px solid rgba(0,131,108,0.3)" }}>
-            {/* Glow behind avatar */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <motion.div
-                className="rounded-full"
-                style={{ width: 140, height: 140, background: "radial-gradient(ellipse, rgba(0,131,108,0.3) 0%, transparent 70%)" }}
-                animate={{ scale: avatarState === "talking" ? [1, 1.1, 1] : avatarState === "thinking" ? [1, 1.05, 1] : 1 }}
-                transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.6 : 2, ease: "easeInOut" }}
+      {/* ── Main scroll area ────────────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-md mx-auto px-4 pb-4 space-y-3 pt-3">
+
+          {/* ── Avatar Card ────────────────────────────────────────────────── */}
+          <div className="relative rounded-2xl overflow-hidden"
+            style={{ background: "linear-gradient(135deg, rgba(0,131,108,0.12) 0%, rgba(245,130,32,0.07) 100%)", border: "1px solid rgba(0,131,108,0.2)" }}>
+
+            {/* Ambient glow */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+              <motion.div className="absolute top-4 left-16 w-32 h-32 rounded-full"
+                style={{ background: "radial-gradient(ellipse, rgba(0,131,108,0.25) 0%, transparent 70%)" }}
+                animate={glowAnim}
+                transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.55 : 2.5, ease: "easeInOut" }}
               />
             </div>
 
             <div className="flex items-center gap-4 p-4 relative z-10">
-              {/* Avatar */}
+              {/* Avatar with state ring */}
               <div className="relative flex-shrink-0">
                 <motion.div
-                  className="relative"
-                  animate={avatarState === "talking" ? { y: [0, -3, 0, -2, 0] } : avatarState === "thinking" ? { rotate: [-1, 1, -1] } : { y: [0, -2, 0] }}
-                  transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.5 : avatarState === "thinking" ? 1.5 : 4, ease: "easeInOut" }}
+                  animate={shouldReduceMotion ? {} : (
+                    avatarState === "talking"  ? { y: [0, -4, 0, -3, 0] } :
+                    avatarState === "thinking" ? { rotate: [-1, 1, -1] } :
+                    { y: [0, -2, 0] }
+                  )}
+                  transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.5 : avatarState === "thinking" ? 1.8 : 5, ease: "easeInOut" }}
                 >
-                  <img
-                    src="/ava-avatar.jpg"
-                    alt="Ava AI Advisor"
-                    className="w-24 h-24 rounded-full object-cover object-top"
-                    style={{ border: "3px solid #00836C", boxShadow: "0 0 20px rgba(0,131,108,0.5)" }}
-                  />
-                  {/* State indicator */}
-                  <div className="absolute -bottom-1 -right-1 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-semibold"
+                  <img src="/ava-avatar.jpg" alt="Ava AI Advisor"
+                    className="w-[88px] h-[88px] rounded-full object-cover object-top"
                     style={{
-                      background: avatarState === "talking" ? "#00836C" : avatarState === "thinking" ? "#F58220" : "#1e3a34",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      fontSize: "9px",
-                      color: "white"
-                    }}>
+                      border: `3px solid ${avatarState === "talking" ? "#00836C" : avatarState === "thinking" ? "#F58220" : "rgba(0,131,108,0.5)"}`,
+                      boxShadow: `0 0 ${avatarState === "idle" ? "12px" : "24px"} ${avatarState === "talking" ? "rgba(0,131,108,0.6)" : "rgba(245,130,32,0.4)"}`,
+                      transition: "border-color 0.3s, box-shadow 0.3s",
+                    }}
+                  />
+                  {/* Status pill */}
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full whitespace-nowrap"
+                    style={{ background: avatarState === "talking" ? "#00836C" : avatarState === "thinking" ? "#F58220" : "#112720", border: "1px solid rgba(255,255,255,0.15)", fontSize: "9px", color: "white", fontWeight: 600 }}>
                     <motion.div className="w-1.5 h-1.5 rounded-full bg-white"
-                      animate={{ opacity: avatarState !== "idle" ? [1, 0.3, 1] : 1 }}
-                      transition={{ repeat: Infinity, duration: 0.8 }}
+                      animate={avatarState !== "idle" ? { opacity: [1, 0.2, 1] } : { opacity: 1 }}
+                      transition={{ repeat: Infinity, duration: 0.7 }}
                     />
                     {avatarState === "talking" ? "Speaking" : avatarState === "thinking" ? "Thinking..." : "Ready"}
                   </div>
                 </motion.div>
               </div>
 
-              {/* Ava Info */}
+              {/* Ava info */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-white font-bold text-lg">Ava</h2>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(0,131,108,0.3)", color: "#4ade80", border: "1px solid rgba(0,131,108,0.4)" }}>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h1 className="text-white font-bold text-xl tracking-tight">Ava</h1>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
+                    style={{ background: "rgba(0,131,108,0.25)", color: "#4ade80", border: "1px solid rgba(0,131,108,0.35)" }}>
                     AI Advisor
                   </span>
                 </div>
-                <p className="text-white/60 text-xs mb-2">Powered by Gemini AI • IDBI Bank</p>
+                <p className="text-[11px] mb-3" style={{ color: "rgba(255,255,255,0.45)" }}>Gemini AI · IDBI Bank</p>
+
                 {/* Voice controls */}
                 <div className="flex items-center gap-2">
-                  <button onClick={() => { if (isSpeaking) stopSpeaking(); else setVoiceEnabled(v => !v); }}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
-                    style={{ background: voiceEnabled ? "rgba(0,131,108,0.3)" : "rgba(255,255,255,0.1)", color: voiceEnabled ? "#4ade80" : "#9ca3af", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    {voiceEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
-                    {isSpeaking ? "Stop" : voiceEnabled ? "Voice On" : "Voice Off"}
+                  <button
+                    onClick={() => voiceOn ? (speaking ? stopSpeak() : setVoiceOn(false)) : setVoiceOn(true)}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95"
+                    style={{ background: voiceOn ? "rgba(0,131,108,0.2)" : "rgba(255,255,255,0.07)", color: voiceOn ? "#4ade80" : "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    {voiceOn ? <SpeakerHigh size={12} /> : <SpeakerX size={12} />}
+                    {speaking ? "Stop" : voiceOn ? "Voice On" : "Voice Off"}
                   </button>
-                  <button onClick={toggleVoiceInput}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
-                    style={{ background: isListening ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.1)", color: isListening ? "#f87171" : "#9ca3af", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    {isListening ? <><motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}><Mic className="w-3 h-3" /></motion.div> Listening</> : <><MicOff className="w-3 h-3" /> Tap to Speak</>}
+                  <button
+                    onClick={toggleListen}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95"
+                    style={{ background: listening ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.07)", color: listening ? "#f87171" : "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    {listening
+                      ? <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}><Microphone size={12} /></motion.div>
+                      : <MicrophoneSlash size={12} />}
+                    {listening ? "Listening..." : "Speak"}
                   </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Demo Scenarios */}
-        <div className="px-4 py-2">
-          <p className="text-white/40 text-xs mb-2 font-medium uppercase tracking-wider">Quick Demo Scenarios</p>
-          <div className="grid grid-cols-2 gap-2">
-            {scenarios.map((s) => {
-              const Icon = s.icon;
-              return (
-                <motion.button
-                  key={s.key}
-                  whileTap={{ scale: 0.96 }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => triggerScenario(s.key)}
-                  disabled={isLoading}
-                  className="flex items-center gap-2 p-2.5 rounded-xl text-left transition-all disabled:opacity-50"
-                  style={{ background: "rgba(255,255,255,0.05)", border: `1px solid ${s.color}33` }}
-                >
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}22` }}>
-                    <Icon className="w-3.5 h-3.5" style={{ color: s.color }} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-white text-xs font-semibold leading-none">{s.label}</p>
-                    <p className="text-white/40 text-xs leading-none mt-0.5">{s.desc}</p>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Dashboard Tabs */}
-        <div className="px-4 py-1">
-          <div className="flex gap-1 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.05)" }}>
-            {[
-              { key: "overview", label: "Overview", icon: BarChart3 },
-              { key: "portfolio", label: "Portfolio", icon: PieChart },
-              { key: "transactions", label: "Transactions", icon: Wallet },
-            ].map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button key={tab.key} onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-medium transition-all"
-                  style={{
-                    background: activeTab === tab.key ? "rgba(0,131,108,0.4)" : "transparent",
-                    color: activeTab === tab.key ? "#4ade80" : "#9ca3af",
-                    border: activeTab === tab.key ? "1px solid rgba(0,131,108,0.4)" : "1px solid transparent"
-                  }}>
-                  <Icon className="w-3 h-3" />{tab.label}
-                </button>
-              );
-            })}
+          {/* ── Security Badge ───────────────────────────────────────────── */}
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
+            style={{ background: "rgba(0,131,108,0.06)", border: "1px solid rgba(0,131,108,0.12)" }}>
+            <ShieldCheck size={14} weight="fill" style={{ color: "#00836C", flexShrink: 0 }} />
+            <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Bank-grade secure · No real data shared · Demo prototype
+            </p>
           </div>
 
-          <AnimatePresence mode="wait">
-            {activeTab === "overview" && (
-              <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-2 grid grid-cols-3 gap-2">
-                {[
-                  { label: "Net Worth", value: formatCurrency(750000), icon: TrendingUp, positive: true },
-                  { label: "Monthly Income", value: "₹1.25L", icon: BarChart3, positive: true },
-                  { label: "Savings Rate", value: "Declining", icon: TrendingDown, positive: false },
-                ].map(stat => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={stat.label} className="p-2.5 rounded-xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                      <Icon className="w-3 h-3 mb-1.5" style={{ color: stat.positive ? "#00836C" : "#F58220" }} />
-                      <p className="text-white font-bold text-xs leading-none">{stat.value}</p>
-                      <p className="text-white/40 text-xs mt-0.5">{stat.label}</p>
+          {/* ── Demo Scenarios ───────────────────────────────────────────── */}
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>
+              Demo Scenarios
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {SCENARIOS.map(s => {
+                const Icon = s.icon;
+                return (
+                  <motion.button key={s.key}
+                    onClick={() => triggerScenario(s.key)}
+                    disabled={loading}
+                    whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+                    className="flex items-start gap-2.5 p-3 rounded-xl text-left transition-all disabled:opacity-40"
+                    style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${s.color}28` }}>
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ background: `${s.color}18` }}>
+                      <Icon size={14} weight="fill" style={{ color: s.color }} />
                     </div>
-                  );
-                })}
-                {mockGoals.map(goal => {
-                  const pct = Math.round((goal.current / goal.target) * 100);
-                  const Icon = goal.icon;
-                  return (
-                    <div key={goal.id} className="col-span-3 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div>
+                      <p className="text-white text-[12px] font-semibold leading-tight">{s.label}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{s.sub}</p>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Dashboard Tabs ───────────────────────────────────────────── */}
+          <div>
+            {/* Tab bar */}
+            <div className="flex gap-1 p-1 rounded-xl mb-2" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              {([
+                { k: "overview",      label: "Overview",      Icon: ChartBar  },
+                { k: "portfolio",     label: "Portfolio",     Icon: ChartPie  },
+                { k: "transactions",  label: "Transactions",  Icon: Wallet    },
+              ] as const).map(({ k, label, Icon }) => (
+                <button key={k} onClick={() => setTab(k)}
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+                  style={{
+                    background: tab === k ? "rgba(0,131,108,0.35)" : "transparent",
+                    color:      tab === k ? "#4ade80" : "rgba(255,255,255,0.4)",
+                    border:     tab === k ? "1px solid rgba(0,131,108,0.4)" : "1px solid transparent",
+                  }}>
+                  <Icon size={12} weight={tab === k ? "fill" : "regular"} />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab content */}
+            <AnimatePresence mode="wait">
+              {/* Overview */}
+              {tab === "overview" && (
+                <motion.div key="overview"
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.18 }}
+                  className="space-y-2">
+                  {/* Stats row */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "Net Worth",   value: "₹7.5L",     Icon: TrendUp,   pos: true },
+                      { label: "Income",      value: "₹1.25L/mo", Icon: ChartBar,  pos: true },
+                      { label: "Savings",     value: "Declining",  Icon: TrendDown, pos: false },
+                    ].map(({ label, value, Icon, pos }) => (
+                      <div key={label} className="p-3 rounded-xl"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                        <Icon size={13} weight="fill" style={{ color: pos ? "#00836C" : "#F58220", marginBottom: 6 }} />
+                        <p className="text-white font-bold text-xs leading-none">{value}</p>
+                        <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Goals */}
+                  {mockGoals.map(goal => {
+                    const pct = Math.round((goal.current / goal.target) * 100);
+                    const Icon = goal.icon;
+                    return (
+                      <div key={goal.id} className="p-3 rounded-xl"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Icon size={13} weight="fill" style={{ color: "#F58220" }} />
+                            <span className="text-white text-xs font-semibold">{goal.name}</span>
+                          </div>
+                          <span className="text-[11px] font-semibold" style={{ color: "#F58220" }}>{pct}%</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+                          <motion.div className="h-1.5 rounded-full"
+                            style={{ background: "linear-gradient(90deg, #00836C, #F58220)" }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-1.5">
+                          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{fmt(goal.current)}</span>
+                          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{fmt(goal.target)} · {goal.deadline}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              )}
+
+              {/* Portfolio */}
+              {tab === "portfolio" && (
+                <motion.div key="portfolio"
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.18 }}
+                  className="space-y-2">
+                  {mockHoldings.map(h => (
+                    <div key={h.name} className="p-3 rounded-xl"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Icon className="w-3.5 h-3.5" style={{ color: "#F58220" }} />
-                          <span className="text-white text-xs font-semibold">{goal.name}</span>
+                          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: h.color }} />
+                          <span className="text-white text-xs font-medium">{h.name}</span>
                         </div>
-                        <span className="text-xs" style={{ color: "#F58220" }}>{pct}% • {goal.deadline}</span>
+                        <div className="flex items-center gap-1">
+                          <ArrowUpRight size={10} style={{ color: "#4ade80" }} />
+                          <span className="text-[11px] font-bold" style={{ color: "#4ade80" }}>{h.returns}%</span>
+                        </div>
                       </div>
-                      <div className="w-full h-2 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
-                        <motion.div className="h-2 rounded-full" style={{ background: "linear-gradient(90deg, #00836C, #F58220)", width: `${pct}%` }} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1, ease: "easeOut" }} />
+                      <div className="flex items-end justify-between">
+                        <span className="text-white font-bold">{fmt(h.value)}</span>
+                        <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>{h.percent}% alloc</span>
                       </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-white/40 text-xs">{formatCurrency(goal.current)}</span>
-                        <span className="text-white/40 text-xs">{formatCurrency(goal.target)}</span>
+                      <div className="w-full h-1 rounded-full mt-2 overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+                        <motion.div className="h-1 rounded-full"
+                          style={{ background: h.color }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${h.percent}%` }}
+                          transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                        />
                       </div>
                     </div>
-                  );
-                })}
-              </motion.div>
-            )}
-
-            {activeTab === "portfolio" && (
-              <motion.div key="portfolio" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-2 space-y-2">
-                {mockHoldings.map(h => (
-                  <div key={h.name} className="p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: h.color }} />
-                        <span className="text-white text-xs font-medium">{h.name}</span>
-                      </div>
-                      <span className="text-xs font-semibold" style={{ color: "#4ade80" }}>+{h.returns}%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-white font-bold text-sm">{formatCurrency(h.value)}</span>
-                      <span className="text-white/50 text-xs">{h.percent}%</span>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full mt-2" style={{ background: "rgba(255,255,255,0.1)" }}>
-                      <motion.div className="h-1.5 rounded-full" style={{ background: h.color, width: `${h.percent}%` }} initial={{ width: 0 }} animate={{ width: `${h.percent}%` }} transition={{ duration: 1, delay: 0.2 }} />
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            )}
-
-            {activeTab === "transactions" && (
-              <motion.div key="transactions" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="mt-2 space-y-1.5">
-                {mockTransactions.map((tx, i) => (
-                  <div key={i} className="flex items-center justify-between p-2.5 rounded-xl" style={{ background: tx.spike ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.04)", border: `1px solid ${tx.spike ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.07)"}` }}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-xs font-medium truncate">{tx.merchant}</p>
-                      <p className="text-white/40 text-xs">{tx.category} • {tx.date}</p>
-                    </div>
-                    <span className="text-xs font-bold ml-2" style={{ color: tx.type === "credit" ? "#4ade80" : tx.spike ? "#f87171" : "#e5e7eb" }}>
-                      {tx.type === "credit" ? "+" : "-"}{formatCurrency(tx.amount)}
-                    </span>
-                  </div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Chat */}
-        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0">
-          <div className="flex items-center gap-2 mb-1">
-            <MessageCircle className="w-3.5 h-3.5 text-white/40" />
-            <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Conversation</p>
-          </div>
-          <AnimatePresence initial={false}>
-            {messages.map((msg, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                {msg.role === "assistant" && (
-                  <img src="/ava-avatar.jpg" alt="Ava" className="w-7 h-7 rounded-full object-cover object-top flex-shrink-0 mt-0.5" style={{ border: "1.5px solid #00836C" }} />
-                )}
-                <div className="max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed"
-                  style={{
-                    background: msg.role === "user" ? "linear-gradient(135deg, #00836C, #006654)" : "rgba(255,255,255,0.08)",
-                    color: "white",
-                    borderBottomRightRadius: msg.role === "user" ? 4 : undefined,
-                    borderBottomLeftRadius: msg.role === "assistant" ? 4 : undefined,
-                    border: msg.role === "assistant" ? "1px solid rgba(255,255,255,0.1)" : "none"
-                  }}>
-                  {msg.content}
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-
-          {isLoading && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2 items-center">
-              <img src="/ava-avatar.jpg" alt="Ava" className="w-7 h-7 rounded-full object-cover object-top" style={{ border: "1.5px solid #00836C" }} />
-              <div className="px-3 py-2 rounded-2xl rounded-bl-sm" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <div className="flex gap-1">
-                  {[0, 1, 2].map(i => (
-                    <motion.div key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: "#00836C" }} animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15 }} />
                   ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-          <div ref={messagesEndRef} />
+                </motion.div>
+              )}
+
+              {/* Transactions */}
+              {tab === "transactions" && (
+                <motion.div key="transactions"
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.18 }}
+                  className="space-y-1.5">
+                  {mockTransactions.map((tx, i) => (
+                    <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-xl"
+                      style={{
+                        background: tx.spike ? "rgba(239,68,68,0.07)" : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${tx.spike ? "rgba(239,68,68,0.25)" : "rgba(255,255,255,0.07)"}`,
+                      }}>
+                      <div>
+                        <p className="text-white text-xs font-semibold">{tx.merchant}</p>
+                        <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
+                          {tx.cat}{tx.spike ? " · Spike" : ""} · {tx.date}
+                        </p>
+                      </div>
+                      <span className="text-xs font-bold ml-2"
+                        style={{ color: tx.type === "credit" ? "#4ade80" : tx.spike ? "#f87171" : "rgba(255,255,255,0.7)" }}>
+                        {tx.type === "credit" ? "+" : "-"}{fmt(tx.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ── Chat ─────────────────────────────────────────────────────── */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <ChatCircleText size={13} style={{ color: "rgba(255,255,255,0.3)" }} />
+              <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>
+                Conversation
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              <AnimatePresence initial={false}>
+                {messages.map((msg, i) => (
+                  <motion.div key={i}
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    {msg.role === "assistant" && (
+                      <img src="/ava-avatar.jpg" alt="Ava"
+                        className="w-6 h-6 rounded-full object-cover object-top flex-shrink-0 mt-0.5"
+                        style={{ border: "1.5px solid #00836C" }} />
+                    )}
+                    <div className="max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed"
+                      style={{
+                        background:           msg.role === "user" ? "linear-gradient(135deg, #00836C, #005a4a)" : "rgba(255,255,255,0.06)",
+                        color:                "white",
+                        border:               msg.role === "assistant" ? "1px solid rgba(255,255,255,0.08)" : "none",
+                        borderBottomRightRadius: msg.role === "user" ? 4 : undefined,
+                        borderBottomLeftRadius:  msg.role === "assistant" ? 4 : undefined,
+                      }}>
+                      {msg.content}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {/* Typing indicator */}
+              {loading && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2 items-center">
+                  <img src="/ava-avatar.jpg" alt="Ava"
+                    className="w-6 h-6 rounded-full object-cover object-top"
+                    style={{ border: "1.5px solid #00836C" }} />
+                  <div className="px-3 py-2.5 rounded-2xl rounded-bl-sm"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div className="flex gap-1">
+                      {[0, 1, 2].map(j => (
+                        <motion.div key={j} className="w-1.5 h-1.5 rounded-full"
+                          style={{ background: "#00836C" }}
+                          animate={{ y: [0, -4, 0] }}
+                          transition={{ repeat: Infinity, duration: 0.7, delay: j * 0.12 }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              <div ref={bottomRef} />
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Input */}
-        <div className="px-4 py-3 border-t border-white/10" style={{ background: "rgba(13,17,23,0.9)", backdropFilter: "blur(16px)" }}>
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <button type="button" onClick={toggleVoiceInput}
-              className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
-              style={{ background: isListening ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.08)", border: `1px solid ${isListening ? "rgba(239,68,68,0.5)" : "rgba(255,255,255,0.15)"}` }}>
-              {isListening
-                ? <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}><Mic className="w-4 h-4 text-red-400" /></motion.div>
-                : <Mic className="w-4 h-4 text-white/50" />}
-            </button>
+      {/* ── Input Bar ────────────────────────────────────────────────────────── */}
+      <div className="sticky bottom-0 z-40 px-4 py-3"
+        style={{ background: "rgba(8,14,13,0.92)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,131,108,0.15)" }}>
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 max-w-md mx-auto">
+          <button type="button" onClick={toggleListen}
+            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
+            style={{ background: listening ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.07)", border: `1px solid ${listening ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.1)"}` }}>
+            {listening
+              ? <motion.div animate={{ scale: [1, 1.25, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}><Microphone size={16} style={{ color: "#f87171" }} /></motion.div>
+              : <Microphone size={16} style={{ color: "rgba(255,255,255,0.4)" }} />}
+          </button>
 
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Ask Ava anything..."
-              className="flex-1 bg-transparent text-white text-sm outline-none placeholder-white/30 px-3 py-2 rounded-xl"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
-              disabled={isLoading}
-            />
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Ask Ava anything about your finances..."
+            disabled={loading}
+            className="flex-1 text-white text-sm outline-none px-3 py-2 rounded-xl transition-all"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}
+          />
 
-            <motion.button type="submit" disabled={isLoading || !input.trim()}
-              whileTap={{ scale: 0.9 }}
-              className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
-              style={{ background: "linear-gradient(135deg, #00836C, #006654)" }}>
-              <Send className="w-4 h-4 text-white" />
-            </motion.button>
-          </form>
-        </div>
+          <motion.button type="submit" disabled={loading || !input.trim()}
+            whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
+            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-35"
+            style={{ background: "linear-gradient(135deg, #00836C 0%, #005a4a 100%)", boxShadow: "0 0 12px rgba(0,131,108,0.4)" }}>
+            <PaperPlaneTilt size={16} weight="fill" style={{ color: "white" }} />
+          </motion.button>
+        </form>
       </div>
     </div>
   );
