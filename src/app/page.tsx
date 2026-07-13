@@ -92,21 +92,79 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // Female voice names across Chrome, Edge, Safari, Firefox
+  const FEMALE_VOICE_KEYWORDS = [
+    "Google UK English Female",
+    "Google US English Female",
+    "Microsoft Zira",
+    "Microsoft Aria",
+    "Microsoft Jenny",
+    "Microsoft Ava",
+    "Samantha",
+    "Victoria",
+    "Karen",
+    "Moira",
+    "Tessa",
+    "Veena",
+    "Fiona",
+    "Allison",
+    "Ava",
+    "Susan",
+    "Zira",
+    "Aria",
+    "Jenny",
+    "female",
+    "Female",
+    "woman",
+  ];
+
+  const getFemaleVoice = (): SpeechSynthesisVoice | null => {
+    if (!synthRef.current) return null;
+    const voices = synthRef.current.getVoices();
+    // Try each preferred name in order
+    for (const keyword of FEMALE_VOICE_KEYWORDS) {
+      const match = voices.find(v => v.name.includes(keyword));
+      if (match) return match;
+    }
+    // Fallback: any voice with "en" lang that isn't explicitly male
+    const enVoice = voices.find(v =>
+      v.lang.startsWith("en") &&
+      !v.name.toLowerCase().includes("male") &&
+      !v.name.toLowerCase().includes("guy") &&
+      !v.name.toLowerCase().includes("david") &&
+      !v.name.toLowerCase().includes("mark") &&
+      !v.name.toLowerCase().includes("james") &&
+      !v.name.toLowerCase().includes("george") &&
+      !v.name.toLowerCase().includes("daniel") &&
+      !v.name.toLowerCase().includes("alex")
+    );
+    return enVoice || null;
+  };
+
+  // Pre-load voices (Chrome loads them async)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const loadVoices = () => synthRef.current?.getVoices();
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }, []);
+
   const speak = useCallback((text: string) => {
     if (!voiceEnabled || !synthRef.current) return;
     synthRef.current.cancel();
     const clean = text.replace(/[*_#`]/g, "").replace(/\n/g, " ");
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.1;
+    utterance.rate = 0.95;   // slightly slower = more natural
+    utterance.pitch = 1.25;  // higher pitch = clearly feminine
     utterance.volume = 1;
-    const voices = synthRef.current.getVoices();
-    const preferred = voices.find(v => v.name.includes("Female") || v.name.includes("Samantha") || v.name.includes("Google UK English Female"));
-    if (preferred) utterance.voice = preferred;
+
+    const femaleVoice = getFemaleVoice();
+    if (femaleVoice) utterance.voice = femaleVoice;
+
     utterance.onstart = () => { setAvatarState("talking"); setIsSpeaking(true); };
     utterance.onend = () => { setAvatarState("idle"); setIsSpeaking(false); };
     synthRef.current.speak(utterance);
-  }, [voiceEnabled]);
+  }, [voiceEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stopSpeaking = () => {
     synthRef.current?.cancel();
