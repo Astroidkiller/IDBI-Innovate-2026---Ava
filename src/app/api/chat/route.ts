@@ -2,6 +2,7 @@ import mockData from "@/data/mockData.json";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 
+// AQ. key format is the new Google Gemini API key format (June 2026+)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const systemPrompt = `
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     const { messages } = await req.json();
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-3.5-flash",
       systemInstruction: systemPrompt,
     });
 
