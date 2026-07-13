@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/IDBI_Bank_Logo.png" alt="IDBI Logo" width="150" />
+  <img src="<img width="190" height="148" alt="download" src="https://github.com/user-attachments/assets/2e57f8d1-8db9-4343-b5a3-00a35a8f58f1" />" alt="IDBI Logo" width="150" />
   <h1>Ava — Digital Wealth Advisor</h1>
   <p><strong>An AI-powered, avatar-based wealth advisory platform built for the IDBI Innovate 2026 Hackathon (Problem Statement 1: Digital Wealth Management).</strong></p>
   
