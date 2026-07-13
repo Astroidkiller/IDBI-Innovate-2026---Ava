@@ -42,12 +42,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid scenario" }, { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({
+    let model = genAI.getGenerativeModel({
       model: "gemini-3.5-flash",
       systemInstruction: systemPrompt,
     });
 
-    const result = await model.generateContent(prompt);
+    let result;
+    try {
+      result = await model.generateContent(prompt);
+    } catch (e) {
+      console.warn("Gemini 3.5 Flash failed, falling back to 1.5 Flash:", e);
+      model = genAI.getGenerativeModel({
+        model: "gemini-3.1-flash-lite",
+        systemInstruction: systemPrompt,
+      });
+      result = await model.generateContent(prompt);
+    }
     const response = await result.response;
     const text = response.text();
 

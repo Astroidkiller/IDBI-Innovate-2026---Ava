@@ -51,7 +51,20 @@ export async function POST(req: NextRequest) {
     });
 
     const lastMessage = messages[messages.length - 1];
-    const result = await chat.sendMessage(lastMessage.content);
+    let result;
+    try {
+      result = await chat.sendMessage(lastMessage.content);
+    } catch (e) {
+      console.warn("Gemini 3.5 Flash chat failed, falling back to 1.5 Flash:", e);
+      const fallbackModel = genAI.getGenerativeModel({
+        model: "gemini-3.1-flash-lite",
+        systemInstruction: systemPrompt,
+      });
+      const fallbackChat = fallbackModel.startChat({
+        history: historyData,
+      });
+      result = await fallbackChat.sendMessage(lastMessage.content);
+    }
     const response = await result.response;
     const text = response.text();
 
