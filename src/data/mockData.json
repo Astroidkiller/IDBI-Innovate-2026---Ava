@@ -1,0 +1,57 @@
+{
+  "profile": {
+    "name": "Rohan Sharma",
+    "age": 32,
+    "incomeBand": "High (15-20 LPA)",
+    "riskAppetite": "Moderate",
+    "occupation": "Software Engineer"
+  },
+  "financialGoals": [
+    {
+      "id": "goal_1",
+      "name": "Home Down Payment",
+      "targetAmount": 1500000,
+      "currentAmount": 600000,
+      "deadline": "2028-12-31",
+      "recommendedMonthlySip": 25000
+    },
+    {
+      "id": "goal_2",
+      "name": "Emergency Fund",
+      "targetAmount": 300000,
+      "currentAmount": 280000,
+      "deadline": "2026-10-01",
+      "recommendedMonthlySip": 5000
+    }
+  ],
+  "holdings": {
+    "equityMutualFunds": {
+      "value": 450000,
+      "allocationPercentage": 60,
+      "returnsPercentage": 12.5
+    },
+    "fixedDeposits": {
+      "value": 250000,
+      "allocationPercentage": 33.3,
+      "returnsPercentage": 6.8
+    },
+    "gold": {
+      "value": 50000,
+      "allocationPercentage": 6.7,
+      "returnsPercentage": 8.1
+    }
+  },
+  "recentTransactions": [
+    { "id": "t1", "date": "2026-07-10", "category": "Food & Dining", "amount": 4500, "merchant": "Zomato" },
+    { "id": "t2", "date": "2026-07-09", "category": "Travel", "amount": 1200, "merchant": "Uber" },
+    { "id": "t3", "date": "2026-07-08", "category": "Rent", "amount": 25000, "merchant": "Landlord" },
+    { "id": "t4", "date": "2026-07-05", "category": "Discretionary", "amount": 18000, "merchant": "Apple Store" },
+    { "id": "t5", "date": "2026-07-01", "category": "Salary", "amount": 125000, "merchant": "Employer" }
+  ],
+  "behaviouralSignals": {
+    "savingsRateTrend": "Declining",
+    "spendSpikes": [
+      { "category": "Discretionary", "message": "High spending on electronics this month." }
+    ]
+  }
+}
