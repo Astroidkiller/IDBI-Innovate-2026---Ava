@@ -212,87 +212,72 @@ export default function AvaPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-[100dvh] flex flex-col font-sans">
+    <div className="min-h-[100dvh] flex flex-col bg-background text-foreground selection:bg-white/20">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-4 md:px-8 h-16 bg-background/85 backdrop-blur-xl border-b border-idbi-green-muted">
+      <header className="sticky top-0 z-50 flex items-center justify-between px-4 md:px-8 h-16 bg-background/90 backdrop-blur-md border-b border-border-subtle">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black bg-gradient-to-br from-idbi-green to-[#005a4a] shadow-[0_0_12px_var(--color-idbi-green-glow)]">
+          <div className="w-8 h-8 rounded flex items-center justify-center text-background text-xs font-bold bg-foreground">
             IB
           </div>
           <div>
-            <p className="text-xs font-medium text-text-muted leading-none">IDBI Bank</p>
-            <p className="text-base font-semibold text-white leading-none mt-1">Digital Wealth</p>
+            <p className="text-xs font-semibold tracking-tight text-white leading-none mt-0.5">IDBI Wealth</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-idbi-orange-muted border border-idbi-orange/25">
-          <Sparkle weight="fill" size={14} className="text-idbi-orange" />
-          <span className="text-xs font-semibold text-idbi-orange">AI Advisory</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border-strong">
+          <Sparkle weight="fill" size={14} className="text-white" />
+          <span className="text-xs font-medium text-white">AI Advisory</span>
         </div>
 
-        <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-idbi-green to-idbi-orange">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-surface border border-border-strong text-white">
           RS
         </div>
       </header>
 
       {/* ── Main Layout ────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10 md:grid md:grid-cols-12 md:gap-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 md:grid md:grid-cols-12 md:gap-12">
 
           {/* Left Column (Desktop: 5 cols) - Avatar & Controls */}
-          <div className="md:col-span-5 space-y-6">
+          <div className="md:col-span-5 space-y-8">
 
             {/* Avatar Section */}
-            <div className="relative rounded-3xl overflow-hidden bg-surface border border-idbi-green-muted p-6 shadow-sm">
-              <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-                <motion.div className="absolute top-4 left-20 w-40 h-40 rounded-full bg-[radial-gradient(ellipse,var(--color-idbi-green-muted)_0%,transparent_70%)]"
-                  animate={glowAnim}
-                  transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.55 : 2.5, ease: "easeInOut" }}
-                />
-              </div>
-
-              <div className="flex items-center gap-5 relative z-10">
+            <div className="relative rounded-lg overflow-hidden bg-surface border border-border-subtle p-6">
+              <div className="flex items-start gap-6 relative z-10">
                 <div className="relative flex-shrink-0">
-                  <motion.div animate={shouldReduceMotion ? {} : (avatarState === "talking" ? { y: [0, -4, 0, -3, 0] } : avatarState === "thinking" ? { rotate: [-1, 1, -1] } : { y: [0, -2, 0] })}
-                    transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.5 : avatarState === "thinking" ? 1.8 : 5, ease: "easeInOut" }}>
+                  <motion.div animate={shouldReduceMotion ? {} : (avatarState === "talking" ? { y: [0, -2, 0, -1, 0] } : avatarState === "thinking" ? { opacity: [1, 0.7, 1] } : { y: [0, -1, 0] })}
+                    transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.4 : avatarState === "thinking" ? 1.5 : 4, ease: "linear" }}>
                     <img src="/ava-avatar.jpg" alt="Ava AI Advisor"
-                      className="w-[100px] h-[100px] rounded-full object-cover object-top transition-all duration-300"
+                      className="w-[80px] h-[80px] rounded object-cover object-top filter grayscale transition-all duration-300"
                       style={{
-                        border: `3px solid ${avatarState === "talking" ? "var(--color-idbi-green)" : avatarState === "thinking" ? "var(--color-idbi-orange)" : "var(--color-idbi-green-muted)"}`,
-                        boxShadow: `0 0 ${avatarState === "idle" ? "12px" : "24px"} ${avatarState === "talking" ? "var(--color-idbi-green-glow)" : "var(--color-idbi-orange-glow)"}`
+                        border: `1px solid ${avatarState === "talking" ? "#ffffff" : "transparent"}`,
+                        opacity: avatarState === "idle" ? 0.8 : 1
                       }}
                     />
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-border-strong text-[10px] text-white font-bold whitespace-nowrap transition-colors duration-300"
-                      style={{ background: avatarState === "talking" ? "var(--color-idbi-green)" : avatarState === "thinking" ? "var(--color-idbi-orange)" : "#112720" }}>
-                      <motion.div className="w-1.5 h-1.5 rounded-full bg-white" animate={avatarState !== "idle" ? { opacity: [1, 0.2, 1] } : { opacity: 1 }} transition={{ repeat: Infinity, duration: 0.7 }} />
-                      {avatarState === "talking" ? "Speaking" : avatarState === "thinking" ? "Thinking..." : "Ready"}
+                    <div className="mt-3 flex items-center gap-2 text-[11px] text-white font-medium uppercase tracking-widest">
+                      <motion.div className="w-1.5 h-1.5 rounded-full bg-white" animate={avatarState !== "idle" ? { opacity: [1, 0, 1] } : { opacity: 1 }} transition={{ repeat: Infinity, duration: 0.8 }} />
+                      {avatarState === "talking" ? "Speaking" : avatarState === "thinking" ? "Thinking" : "Ready"}
                     </div>
                   </motion.div>
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h1 className="text-white font-bold text-2xl tracking-tight">Ava</h1>
-                    <span className="text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider bg-idbi-green-muted text-green-400 border border-idbi-green/30">
-                      AI Advisor
-                    </span>
-                  </div>
-                  <p className="text-xs mb-4 text-text-muted font-medium">Gemini AI · IDBI Bank</p>
+                  <h1 className="text-white font-medium text-3xl tracking-tighter mb-1">Ava.</h1>
+                  <p className="text-sm text-text-muted font-normal mb-6">IDBI Autonomous Wealth Agent</p>
 
                   <div className="flex items-center gap-2">
                     <button onClick={() => voiceOn ? (speaking ? stopSpeak() : setVoiceOn(false)) : setVoiceOn(true)}
                       aria-label={speaking ? "Stop speaking" : voiceOn ? "Disable voice" : "Enable voice"}
-                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded-xl text-xs font-bold transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-idbi-green"
-                      style={{ background: voiceOn ? "var(--color-idbi-green-muted)" : "var(--color-surface-hover)", color: voiceOn ? "#4ade80" : "var(--color-text-muted)" }}>
+                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded bg-surface-hover hover:bg-surface-active text-xs font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-white">
                       {voiceOn ? <SpeakerHigh size={16} /> : <SpeakerX size={16} />}
                       {speaking ? "Stop" : voiceOn ? "Voice On" : "Voice Off"}
                     </button>
                     <button onClick={toggleListen}
                       aria-label={listening ? "Stop listening" : "Start voice input"}
-                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded-xl text-xs font-bold transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-idbi-orange border"
-                      style={{ background: listening ? "rgba(239,68,68,0.2)" : "var(--color-surface-hover)", borderColor: listening ? "rgba(239,68,68,0.4)" : "transparent", color: listening ? "#f87171" : "var(--color-text-muted)" }}>
-                      {listening ? <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}><Microphone size={16} /></motion.div> : <MicrophoneSlash size={16} />}
+                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-white"
+                      style={{ background: listening ? "#ffffff" : "transparent", color: listening ? "#000000" : "#ffffff", border: listening ? "1px solid transparent" : "1px solid var(--color-border-strong)" }}>
+                      {listening ? <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}><Microphone size={16} /></motion.div> : <MicrophoneSlash size={16} />}
                       {listening ? "Listening" : "Speak"}
                     </button>
                   </div>
@@ -301,32 +286,26 @@ export default function AvaPage() {
             </div>
 
             {/* Security Badge */}
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-idbi-green/10 border border-idbi-green/20">
-              <ShieldCheck size={18} weight="fill" className="text-idbi-green flex-shrink-0" />
-              <p className="text-xs text-text-muted font-medium leading-relaxed">
-                Bank-grade secure. No real financial data is shared. This is a hackathon prototype.
+            <div className="flex items-start gap-3">
+              <ShieldCheck size={18} className="text-text-muted flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-text-muted leading-relaxed">
+                Bank-grade secure. No real financial data is shared. Prototype environment.
               </p>
             </div>
 
             {/* Demo Scenarios */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest mb-3 text-text-muted">Demo Scenarios</p>
-              <div className="grid grid-cols-2 gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-widest mb-4 text-text-muted">Scenarios</p>
+              <div className="grid grid-cols-2 gap-4">
                 {SCENARIOS.map(s => {
                   const Icon = s.icon;
                   return (
-                    <motion.button key={s.key} onClick={() => triggerScenario(s.key)} disabled={loading}
-                      whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
-                      className="flex flex-col items-start gap-3 p-4 rounded-2xl text-left transition-all hover:bg-surface-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-idbi-green bg-surface border"
-                      style={{ borderColor: `${s.color}40` }}>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}25` }}>
-                        <Icon size={20} weight="fill" style={{ color: s.color }} />
-                      </div>
-                      <div>
-                        <p className="text-white text-sm font-bold leading-tight mb-1">{s.label}</p>
-                        <p className="text-xs text-text-muted font-medium">{s.sub}</p>
-                      </div>
-                    </motion.button>
+                    <button key={s.key} onClick={() => triggerScenario(s.key)} disabled={loading}
+                      className="flex flex-col items-start p-4 rounded-lg text-left transition-colors hover:bg-surface disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-white border border-border-subtle hover:border-border-strong">
+                      <Icon size={18} className="mb-4 text-white" />
+                      <p className="text-white text-sm font-medium mb-1">{s.label}</p>
+                      <p className="text-xs text-text-muted">{s.sub}</p>
+                    </button>
                   );
                 })}
               </div>
@@ -335,26 +314,24 @@ export default function AvaPage() {
           </div>
 
           {/* Right Column (Desktop: 7 cols) - Chat & Financials */}
-          <div className="md:col-span-7 flex flex-col gap-6 mt-8 md:mt-0">
+          <div className="md:col-span-7 flex flex-col gap-8 mt-12 md:mt-0">
 
             {/* Financial Tabs */}
-            <div className="bg-surface border border-border-subtle rounded-3xl p-4 md:p-6 shadow-sm">
-              <div className="flex gap-2 p-1.5 rounded-2xl mb-6 bg-black/20 border border-border-subtle">
+            <div>
+              <div className="flex gap-4 border-b border-border-subtle mb-6">
                 {([
-                  { k: "overview", label: "Overview", Icon: ChartBar },
-                  { k: "portfolio", label: "Portfolio", Icon: ChartPie },
-                  { k: "transactions", label: "Transactions", Icon: Wallet },
-                ] as const).map(({ k, label, Icon }) => (
+                  { k: "overview", label: "Overview" },
+                  { k: "portfolio", label: "Portfolio" },
+                  { k: "transactions", label: "Ledger" },
+                ] as const).map(({ k, label }) => (
                   <button key={k} onClick={() => setTab(k)}
                     aria-selected={tab === k}
                     role="tab"
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-idbi-green min-h-[44px]"
+                    className="pb-3 text-sm font-medium transition-colors focus-visible:outline-none"
                     style={{
-                      background: tab === k ? "var(--color-idbi-green-muted)" : "transparent",
-                      color: tab === k ? "#4ade80" : "var(--color-text-muted)",
-                      border: tab === k ? "1px solid var(--color-idbi-green-muted)" : "1px solid transparent",
+                      color: tab === k ? "#ffffff" : "var(--color-text-muted)",
+                      borderBottom: tab === k ? "2px solid #ffffff" : "2px solid transparent",
                     }}>
-                    <Icon size={16} weight={tab === k ? "fill" : "regular"} />
                     {label}
                   </button>
                 ))}
@@ -363,40 +340,35 @@ export default function AvaPage() {
               <AnimatePresence mode="wait">
                 {/* Overview */}
                 {tab === "overview" && (
-                  <motion.div key="overview" initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-4">
-                    <div className="grid grid-cols-3 gap-3 md:gap-4">
+                  <motion.div key="overview" initial={shouldReduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="space-y-6">
+                    <div className="grid grid-cols-3 gap-4">
                       {[
-                        { label: "Net Worth", value: "₹7.5L", Icon: TrendUp, pos: true },
-                        { label: "Income", value: "₹1.25L/mo", Icon: ChartBar, pos: true },
-                        { label: "Savings", value: "Declining", Icon: TrendDown, pos: false },
-                      ].map(({ label, value, Icon, pos }) => (
-                        <div key={label} className="p-4 rounded-2xl bg-surface-hover border border-border-subtle">
-                          <Icon size={18} weight="fill" className="mb-2" style={{ color: pos ? "var(--color-idbi-green)" : "var(--color-idbi-orange)" }} />
-                          <p className="text-white font-black text-sm md:text-lg leading-none">{value}</p>
-                          <p className="text-xs mt-2 text-text-muted font-medium">{label}</p>
+                        { label: "Net Worth", value: "₹7.5L" },
+                        { label: "Monthly Flow", value: "₹1.25L" },
+                        { label: "Savings Rate", value: "14%" },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="p-5 rounded-lg border border-border-subtle">
+                          <p className="text-xs text-text-muted mb-2">{label}</p>
+                          <p className="text-white font-medium text-xl tracking-tight">{value}</p>
                         </div>
                       ))}
                     </div>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4">
                       {mockGoals.map(goal => {
                         const pct = Math.round((goal.current / goal.target) * 100);
-                        const Icon = goal.icon;
                         return (
-                          <div key={goal.id} className="p-4 md:p-5 rounded-2xl bg-surface-hover border border-border-subtle">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-3">
-                                <Icon size={18} weight="fill" className="text-idbi-orange" />
-                                <span className="text-white text-sm font-bold">{goal.name}</span>
-                              </div>
-                              <span className="text-sm font-black text-idbi-orange">{pct}%</span>
+                          <div key={goal.id} className="p-5 rounded-lg border border-border-subtle">
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-white text-sm font-medium">{goal.name}</span>
+                              <span className="text-xs font-mono text-text-muted">{pct}%</span>
                             </div>
-                            <div className="w-full h-2 rounded-full overflow-hidden bg-black/30">
-                              <motion.div className="h-full rounded-full bg-gradient-to-r from-idbi-green to-idbi-orange"
-                                initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }} />
+                            <div className="w-full h-1 bg-surface-hover mb-3">
+                              <motion.div className="h-full bg-white"
+                                initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: "easeOut" }} />
                             </div>
-                            <div className="flex justify-between mt-3 text-xs font-medium text-text-muted">
+                            <div className="flex justify-between text-xs text-text-muted font-mono">
                               <span>{fmt(goal.current)}</span>
-                              <span>{fmt(goal.target)} · {goal.deadline}</span>
+                              <span>{fmt(goal.target)}</span>
                             </div>
                           </div>
                         );
@@ -407,26 +379,22 @@ export default function AvaPage() {
 
                 {/* Portfolio */}
                 {tab === "portfolio" && (
-                  <motion.div key="portfolio" initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-3">
+                  <motion.div key="portfolio" initial={shouldReduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="space-y-3">
                     {mockHoldings.map(h => (
-                      <div key={h.name} className="p-4 md:p-5 rounded-2xl bg-surface-hover border border-border-subtle">
-                        <div className="flex items-center justify-between mb-3">
+                      <div key={h.name} className="flex items-center justify-between p-4 rounded-lg border border-border-subtle group hover:border-border-strong transition-colors">
+                        <div className="flex-1">
+                          <p className="text-white text-sm font-medium mb-1">{h.name}</p>
                           <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: h.color }} />
-                            <span className="text-white text-sm font-bold">{h.name}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-green-400">
-                            <ArrowUpRight size={14} />
-                            <span className="text-xs font-black">{h.returns}%</span>
+                            <div className="w-24 h-1 bg-surface-hover">
+                              <motion.div className="h-full bg-text-muted"
+                                initial={{ width: 0 }} animate={{ width: `${h.percent}%` }} transition={{ duration: 0.6 }} />
+                            </div>
+                            <span className="text-xs text-text-muted font-mono">{h.percent}%</span>
                           </div>
                         </div>
-                        <div className="flex items-end justify-between mb-3">
-                          <span className="text-white font-black text-lg">{fmt(h.value)}</span>
-                          <span className="text-xs font-medium text-text-muted">{h.percent}% alloc</span>
-                        </div>
-                        <div className="w-full h-1.5 rounded-full overflow-hidden bg-black/30">
-                          <motion.div className="h-full rounded-full" style={{ background: h.color }}
-                            initial={{ width: 0 }} animate={{ width: `${h.percent}%` }} transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }} />
+                        <div className="text-right">
+                          <p className="text-white font-mono text-sm mb-1">{fmt(h.value)}</p>
+                          <p className="text-xs font-mono text-text-muted">+{h.returns}%</p>
                         </div>
                       </div>
                     ))}
@@ -435,17 +403,14 @@ export default function AvaPage() {
 
                 {/* Transactions */}
                 {tab === "transactions" && (
-                  <motion.div key="transactions" initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-2">
+                  <motion.div key="transactions" initial={shouldReduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="space-y-3">
                     {mockTransactions.map((tx, i) => (
-                      <div key={i} className="flex items-center justify-between p-4 rounded-2xl border"
-                        style={{ background: tx.spike ? "rgba(239,68,68,0.08)" : "var(--color-surface-hover)", borderColor: tx.spike ? "rgba(239,68,68,0.25)" : "var(--color-border-subtle)" }}>
+                      <div key={i} className="flex items-center justify-between py-3 border-b border-border-subtle last:border-0">
                         <div>
-                          <p className="text-white text-sm font-bold">{tx.merchant}</p>
-                          <p className="text-xs mt-1 text-text-muted font-medium">
-                            {tx.cat}{tx.spike ? " · Spike" : ""} · {tx.date}
-                          </p>
+                          <p className="text-white text-sm font-medium">{tx.merchant}</p>
+                          <p className="text-xs text-text-muted mt-1">{tx.date}</p>
                         </div>
-                        <span className="text-sm font-black ml-3" style={{ color: tx.type === "credit" ? "#4ade80" : tx.spike ? "#f87171" : "white" }}>
+                        <span className="text-sm font-mono text-white">
                           {tx.type === "credit" ? "+" : "-"}{fmt(tx.amount)}
                         </span>
                       </div>
@@ -456,27 +421,21 @@ export default function AvaPage() {
             </div>
 
             {/* Chat Interface */}
-            <div className="bg-surface border border-border-subtle rounded-3xl p-4 md:p-6 flex flex-col h-[500px] shadow-sm">
-              <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-                <ChatCircleText size={16} className="text-text-muted" />
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Conversation</p>
+            <div className="flex flex-col h-[400px] border border-border-strong rounded-lg bg-surface">
+              <div className="px-5 py-4 border-b border-border-subtle bg-background">
+                <p className="text-xs font-semibold uppercase tracking-widest text-white">Agent Thread</p>
               </div>
 
-              <div className="space-y-4 flex-1 overflow-y-auto pr-2 pb-2">
+              <div className="space-y-6 flex-1 overflow-y-auto p-5">
                 <AnimatePresence initial={false}>
                   {messages.map((msg, i) => (
-                    <motion.div key={i} initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-                      className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <motion.div key={i} initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+                      className={`flex gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                       {msg.role === "assistant" && (
-                        <img src="/ava-avatar.jpg" alt="Ava" className="w-8 h-8 rounded-full object-cover object-top flex-shrink-0 mt-1 border border-idbi-green/50" />
+                        <div className="w-6 h-6 rounded flex-shrink-0 bg-white text-black flex items-center justify-center text-[10px] font-bold mt-1">A</div>
                       )}
-                      <div className="max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed text-white font-medium shadow-sm"
-                        style={{
-                          background: msg.role === "user" ? "linear-gradient(135deg, var(--color-idbi-green), #005a4a)" : "var(--color-surface-active)",
-                          border: msg.role === "assistant" ? "1px solid var(--color-border-strong)" : "none",
-                          borderBottomRightRadius: msg.role === "user" ? 6 : undefined,
-                          borderBottomLeftRadius: msg.role === "assistant" ? 6 : undefined,
-                        }}>
+                      <div className="max-w-[85%] text-sm leading-relaxed"
+                        style={{ color: msg.role === "user" ? "#a1a1aa" : "#ffffff" }}>
                         {msg.content}
                       </div>
                     </motion.div>
@@ -484,15 +443,13 @@ export default function AvaPage() {
                 </AnimatePresence>
 
                 {loading && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 items-center">
-                    <img src="/ava-avatar.jpg" alt="Ava" className="w-8 h-8 rounded-full object-cover object-top border border-idbi-green/50" />
-                    <div className="px-4 py-3.5 rounded-2xl rounded-bl-md bg-surface-active border border-border-strong">
-                      <div className="flex gap-1.5">
-                        {[0, 1, 2].map(j => (
-                          <motion.div key={j} className="w-2 h-2 rounded-full bg-idbi-green"
-                            animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.7, delay: j * 0.12 }} />
-                        ))}
-                      </div>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-4 items-start">
+                    <div className="w-6 h-6 rounded flex-shrink-0 bg-white text-black flex items-center justify-center text-[10px] font-bold mt-1">A</div>
+                    <div className="flex gap-1.5 mt-2">
+                      {[0, 1, 2].map(j => (
+                        <motion.div key={j} className="w-1.5 h-1.5 rounded-full bg-text-muted"
+                          animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: j * 0.2 }} />
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -500,23 +457,22 @@ export default function AvaPage() {
               </div>
 
               {/* Input Bar */}
-              <div className="mt-4 pt-4 border-t border-border-subtle flex-shrink-0">
+              <div className="p-4 border-t border-border-subtle bg-background">
                 <form onSubmit={handleSubmit} className="flex items-center gap-3">
                   <button type="button" onClick={toggleListen} aria-label={listening ? "Stop recording" : "Record voice message"}
-                    className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-idbi-orange border"
-                    style={{ background: listening ? "rgba(239,68,68,0.2)" : "var(--color-surface-hover)", borderColor: listening ? "rgba(239,68,68,0.4)" : "var(--color-border-subtle)" }}>
-                    {listening ? <motion.div animate={{ scale: [1, 1.25, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}><Microphone size={20} className="text-red-400" /></motion.div> : <Microphone size={20} className="text-text-muted" />}
+                    className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-white"
+                    style={{ background: listening ? "#ffffff" : "var(--color-surface)", color: listening ? "#000000" : "var(--color-text-muted)" }}>
+                    <Microphone size={18} />
                   </button>
 
-                  <input value={input} onChange={e => setInput(e.target.value)} placeholder="Ask Ava anything..." disabled={loading}
-                    className="flex-1 text-white text-sm outline-none px-4 py-2 min-h-[44px] rounded-2xl transition-all bg-surface border border-border-strong focus:border-idbi-green focus:bg-surface-active focus-visible:ring-1 focus-visible:ring-idbi-green"
+                  <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type a message..." disabled={loading}
+                    className="flex-1 text-white text-sm outline-none px-4 py-2.5 h-10 rounded transition-colors bg-surface border border-border-strong focus:border-white focus-visible:ring-1 focus-visible:ring-white"
                   />
 
-                  <motion.button type="submit" disabled={loading || !input.trim()} aria-label="Send message"
-                    whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
-                    className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-idbi-green bg-gradient-to-br from-idbi-green to-[#005a4a] shadow-[0_0_12px_var(--color-idbi-green-glow)]">
-                    <PaperPlaneTilt size={18} weight="fill" className="text-white" />
-                  </motion.button>
+                  <button type="submit" disabled={loading || !input.trim()} aria-label="Send message"
+                    className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-white bg-white text-black hover:bg-zinc-200">
+                    <PaperPlaneTilt size={16} weight="fill" />
+                  </button>
                 </form>
               </div>
             </div>
