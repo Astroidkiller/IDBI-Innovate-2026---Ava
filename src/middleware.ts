@@ -21,9 +21,8 @@ export function middleware(request: NextRequest) {
     }
 
     // Enforce Rate Limiting
-    // Prefer request.ip provided by Next.js, fallback to x-forwarded-for if behind a proxy
-    const ip = request.ip || request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown_ip";
-    
+    // Use x-forwarded-for header for IP tracking
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown_ip";
     const now = Date.now();
     const windowStart = now - WINDOW_MS;
 
