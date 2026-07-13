@@ -1,4 +1,4 @@
-import mockData from "@/data/mockData.json";
+import mockData from "../../../data/mockData.json";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 
