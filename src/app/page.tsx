@@ -212,393 +212,317 @@ export default function AvaPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-[100dvh] flex flex-col" style={{ background: "linear-gradient(160deg, #080e0d 0%, #0b1a16 50%, #080e0d 100%)" }}>
+    <div className="min-h-[100dvh] flex flex-col font-sans">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-4 h-14"
-        style={{ background: "rgba(8,14,13,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(0,131,108,0.15)" }}>
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black"
-            style={{ background: "linear-gradient(135deg, #00836C 0%, #005a4a 100%)", boxShadow: "0 0 12px rgba(0,131,108,0.4)" }}>
+      <header className="sticky top-0 z-50 flex items-center justify-between px-4 md:px-8 h-16 bg-background/85 backdrop-blur-xl border-b border-idbi-green-muted">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-black bg-gradient-to-br from-idbi-green to-[#005a4a] shadow-[0_0_12px_var(--color-idbi-green-glow)]">
             IB
           </div>
           <div>
-            <p className="text-[10px] font-medium leading-none" style={{ color: "rgba(255,255,255,0.4)" }}>IDBI Bank</p>
-            <p className="text-sm font-semibold text-white leading-none mt-0.5">Digital Wealth</p>
+            <p className="text-xs font-medium text-text-muted leading-none">IDBI Bank</p>
+            <p className="text-base font-semibold text-white leading-none mt-1">Digital Wealth</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-          style={{ background: "rgba(245,130,32,0.12)", border: "1px solid rgba(245,130,32,0.25)" }}>
-          <Sparkle weight="fill" size={12} style={{ color: "#F58220" }} />
-          <span className="text-[11px] font-semibold" style={{ color: "#F58220" }}>AI Advisory</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-idbi-orange-muted border border-idbi-orange/25">
+          <Sparkle weight="fill" size={14} className="text-idbi-orange" />
+          <span className="text-xs font-semibold text-idbi-orange">AI Advisory</span>
         </div>
 
-        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-          style={{ background: "linear-gradient(135deg, #00836C, #F58220)" }}>
+        <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-idbi-green to-idbi-orange">
           RS
         </div>
       </header>
 
-      {/* ── Main scroll area ────────────────────────────────────────────────── */}
+      {/* ── Main Layout ────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-md mx-auto px-4 pb-4 space-y-3 pt-3">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10 md:grid md:grid-cols-12 md:gap-8">
 
-          {/* ── Avatar Card ────────────────────────────────────────────────── */}
-          <div className="relative rounded-2xl overflow-hidden"
-            style={{ background: "linear-gradient(135deg, rgba(0,131,108,0.12) 0%, rgba(245,130,32,0.07) 100%)", border: "1px solid rgba(0,131,108,0.2)" }}>
+          {/* Left Column (Desktop: 5 cols) - Avatar & Controls */}
+          <div className="md:col-span-5 space-y-6">
 
-            {/* Ambient glow */}
-            <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-              <motion.div className="absolute top-4 left-16 w-32 h-32 rounded-full"
-                style={{ background: "radial-gradient(ellipse, rgba(0,131,108,0.25) 0%, transparent 70%)" }}
-                animate={glowAnim}
-                transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.55 : 2.5, ease: "easeInOut" }}
-              />
-            </div>
-
-            <div className="flex items-center gap-4 p-4 relative z-10">
-              {/* Avatar with state ring */}
-              <div className="relative flex-shrink-0">
-                <motion.div
-                  animate={shouldReduceMotion ? {} : (
-                    avatarState === "talking"  ? { y: [0, -4, 0, -3, 0] } :
-                    avatarState === "thinking" ? { rotate: [-1, 1, -1] } :
-                    { y: [0, -2, 0] }
-                  )}
-                  transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.5 : avatarState === "thinking" ? 1.8 : 5, ease: "easeInOut" }}
-                >
-                  <img src="/ava-avatar.jpg" alt="Ava AI Advisor"
-                    className="w-[88px] h-[88px] rounded-full object-cover object-top"
-                    style={{
-                      border: `3px solid ${avatarState === "talking" ? "#00836C" : avatarState === "thinking" ? "#F58220" : "rgba(0,131,108,0.5)"}`,
-                      boxShadow: `0 0 ${avatarState === "idle" ? "12px" : "24px"} ${avatarState === "talking" ? "rgba(0,131,108,0.6)" : "rgba(245,130,32,0.4)"}`,
-                      transition: "border-color 0.3s, box-shadow 0.3s",
-                    }}
-                  />
-                  {/* Status pill */}
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full whitespace-nowrap"
-                    style={{ background: avatarState === "talking" ? "#00836C" : avatarState === "thinking" ? "#F58220" : "#112720", border: "1px solid rgba(255,255,255,0.15)", fontSize: "9px", color: "white", fontWeight: 600 }}>
-                    <motion.div className="w-1.5 h-1.5 rounded-full bg-white"
-                      animate={avatarState !== "idle" ? { opacity: [1, 0.2, 1] } : { opacity: 1 }}
-                      transition={{ repeat: Infinity, duration: 0.7 }}
-                    />
-                    {avatarState === "talking" ? "Speaking" : avatarState === "thinking" ? "Thinking..." : "Ready"}
-                  </div>
-                </motion.div>
+            {/* Avatar Section */}
+            <div className="relative rounded-3xl overflow-hidden bg-surface border border-idbi-green-muted p-6 shadow-sm">
+              <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                <motion.div className="absolute top-4 left-20 w-40 h-40 rounded-full bg-[radial-gradient(ellipse,var(--color-idbi-green-muted)_0%,transparent_70%)]"
+                  animate={glowAnim}
+                  transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.55 : 2.5, ease: "easeInOut" }}
+                />
               </div>
 
-              {/* Ava info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h1 className="text-white font-bold text-xl tracking-tight">Ava</h1>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
-                    style={{ background: "rgba(0,131,108,0.25)", color: "#4ade80", border: "1px solid rgba(0,131,108,0.35)" }}>
-                    AI Advisor
-                  </span>
-                </div>
-                <p className="text-[11px] mb-3" style={{ color: "rgba(255,255,255,0.45)" }}>Gemini AI · IDBI Bank</p>
-
-                {/* Voice controls */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => voiceOn ? (speaking ? stopSpeak() : setVoiceOn(false)) : setVoiceOn(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95"
-                    style={{ background: voiceOn ? "rgba(0,131,108,0.2)" : "rgba(255,255,255,0.07)", color: voiceOn ? "#4ade80" : "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    {voiceOn ? <SpeakerHigh size={12} /> : <SpeakerX size={12} />}
-                    {speaking ? "Stop" : voiceOn ? "Voice On" : "Voice Off"}
-                  </button>
-                  <button
-                    onClick={toggleListen}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95"
-                    style={{ background: listening ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.07)", color: listening ? "#f87171" : "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    {listening
-                      ? <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}><Microphone size={12} /></motion.div>
-                      : <MicrophoneSlash size={12} />}
-                    {listening ? "Listening..." : "Speak"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Security Badge ───────────────────────────────────────────── */}
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
-            style={{ background: "rgba(0,131,108,0.06)", border: "1px solid rgba(0,131,108,0.12)" }}>
-            <ShieldCheck size={14} weight="fill" style={{ color: "#00836C", flexShrink: 0 }} />
-            <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Bank-grade secure · No real data shared · Demo prototype
-            </p>
-          </div>
-
-          {/* ── Demo Scenarios ───────────────────────────────────────────── */}
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>
-              Demo Scenarios
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {SCENARIOS.map(s => {
-                const Icon = s.icon;
-                return (
-                  <motion.button key={s.key}
-                    onClick={() => triggerScenario(s.key)}
-                    disabled={loading}
-                    whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
-                    className="flex items-start gap-2.5 p-3 rounded-xl text-left transition-all disabled:opacity-40"
-                    style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${s.color}28` }}>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ background: `${s.color}18` }}>
-                      <Icon size={14} weight="fill" style={{ color: s.color }} />
-                    </div>
-                    <div>
-                      <p className="text-white text-[12px] font-semibold leading-tight">{s.label}</p>
-                      <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{s.sub}</p>
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── Dashboard Tabs ───────────────────────────────────────────── */}
-          <div>
-            {/* Tab bar */}
-            <div className="flex gap-1 p-1 rounded-xl mb-2" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              {([
-                { k: "overview",      label: "Overview",      Icon: ChartBar  },
-                { k: "portfolio",     label: "Portfolio",     Icon: ChartPie  },
-                { k: "transactions",  label: "Transactions",  Icon: Wallet    },
-              ] as const).map(({ k, label, Icon }) => (
-                <button key={k} onClick={() => setTab(k)}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
-                  style={{
-                    background: tab === k ? "rgba(0,131,108,0.35)" : "transparent",
-                    color:      tab === k ? "#4ade80" : "rgba(255,255,255,0.4)",
-                    border:     tab === k ? "1px solid rgba(0,131,108,0.4)" : "1px solid transparent",
-                  }}>
-                  <Icon size={12} weight={tab === k ? "fill" : "regular"} />
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab content */}
-            <AnimatePresence mode="wait">
-              {/* Overview */}
-              {tab === "overview" && (
-                <motion.div key="overview"
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.18 }}
-                  className="space-y-2">
-                  {/* Stats row */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { label: "Net Worth",   value: "₹7.5L",     Icon: TrendUp,   pos: true },
-                      { label: "Income",      value: "₹1.25L/mo", Icon: ChartBar,  pos: true },
-                      { label: "Savings",     value: "Declining",  Icon: TrendDown, pos: false },
-                    ].map(({ label, value, Icon, pos }) => (
-                      <div key={label} className="p-3 rounded-xl"
-                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                        <Icon size={13} weight="fill" style={{ color: pos ? "#00836C" : "#F58220", marginBottom: 6 }} />
-                        <p className="text-white font-bold text-xs leading-none">{value}</p>
-                        <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Goals */}
-                  {mockGoals.map(goal => {
-                    const pct = Math.round((goal.current / goal.target) * 100);
-                    const Icon = goal.icon;
-                    return (
-                      <div key={goal.id} className="p-3 rounded-xl"
-                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Icon size={13} weight="fill" style={{ color: "#F58220" }} />
-                            <span className="text-white text-xs font-semibold">{goal.name}</span>
-                          </div>
-                          <span className="text-[11px] font-semibold" style={{ color: "#F58220" }}>{pct}%</span>
-                        </div>
-                        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-                          <motion.div className="h-1.5 rounded-full"
-                            style={{ background: "linear-gradient(90deg, #00836C, #F58220)" }}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${pct}%` }}
-                            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                          />
-                        </div>
-                        <div className="flex justify-between mt-1.5">
-                          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{fmt(goal.current)}</span>
-                          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{fmt(goal.target)} · {goal.deadline}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </motion.div>
-              )}
-
-              {/* Portfolio */}
-              {tab === "portfolio" && (
-                <motion.div key="portfolio"
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.18 }}
-                  className="space-y-2">
-                  {mockHoldings.map(h => (
-                    <div key={h.name} className="p-3 rounded-xl"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: h.color }} />
-                          <span className="text-white text-xs font-medium">{h.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <ArrowUpRight size={10} style={{ color: "#4ade80" }} />
-                          <span className="text-[11px] font-bold" style={{ color: "#4ade80" }}>{h.returns}%</span>
-                        </div>
-                      </div>
-                      <div className="flex items-end justify-between">
-                        <span className="text-white font-bold">{fmt(h.value)}</span>
-                        <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>{h.percent}% alloc</span>
-                      </div>
-                      <div className="w-full h-1 rounded-full mt-2 overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-                        <motion.div className="h-1 rounded-full"
-                          style={{ background: h.color }}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${h.percent}%` }}
-                          transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-
-              {/* Transactions */}
-              {tab === "transactions" && (
-                <motion.div key="transactions"
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.18 }}
-                  className="space-y-1.5">
-                  {mockTransactions.map((tx, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-xl"
+              <div className="flex items-center gap-5 relative z-10">
+                <div className="relative flex-shrink-0">
+                  <motion.div animate={shouldReduceMotion ? {} : (avatarState === "talking" ? { y: [0, -4, 0, -3, 0] } : avatarState === "thinking" ? { rotate: [-1, 1, -1] } : { y: [0, -2, 0] })}
+                    transition={{ repeat: Infinity, duration: avatarState === "talking" ? 0.5 : avatarState === "thinking" ? 1.8 : 5, ease: "easeInOut" }}>
+                    <img src="/ava-avatar.jpg" alt="Ava AI Advisor"
+                      className="w-[100px] h-[100px] rounded-full object-cover object-top transition-all duration-300"
                       style={{
-                        background: tx.spike ? "rgba(239,68,68,0.07)" : "rgba(255,255,255,0.04)",
-                        border: `1px solid ${tx.spike ? "rgba(239,68,68,0.25)" : "rgba(255,255,255,0.07)"}`,
-                      }}>
-                      <div>
-                        <p className="text-white text-xs font-semibold">{tx.merchant}</p>
-                        <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
-                          {tx.cat}{tx.spike ? " · Spike" : ""} · {tx.date}
-                        </p>
-                      </div>
-                      <span className="text-xs font-bold ml-2"
-                        style={{ color: tx.type === "credit" ? "#4ade80" : tx.spike ? "#f87171" : "rgba(255,255,255,0.7)" }}>
-                        {tx.type === "credit" ? "+" : "-"}{fmt(tx.amount)}
-                      </span>
+                        border: `3px solid ${avatarState === "talking" ? "var(--color-idbi-green)" : avatarState === "thinking" ? "var(--color-idbi-orange)" : "var(--color-idbi-green-muted)"}`,
+                        boxShadow: `0 0 ${avatarState === "idle" ? "12px" : "24px"} ${avatarState === "talking" ? "var(--color-idbi-green-glow)" : "var(--color-idbi-orange-glow)"}`
+                      }}
+                    />
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full border border-border-strong text-[10px] text-white font-bold whitespace-nowrap transition-colors duration-300"
+                      style={{ background: avatarState === "talking" ? "var(--color-idbi-green)" : avatarState === "thinking" ? "var(--color-idbi-orange)" : "#112720" }}>
+                      <motion.div className="w-1.5 h-1.5 rounded-full bg-white" animate={avatarState !== "idle" ? { opacity: [1, 0.2, 1] } : { opacity: 1 }} transition={{ repeat: Infinity, duration: 0.7 }} />
+                      {avatarState === "talking" ? "Speaking" : avatarState === "thinking" ? "Thinking..." : "Ready"}
                     </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                  </motion.div>
+                </div>
 
-          {/* ── Chat ─────────────────────────────────────────────────────── */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <ChatCircleText size={13} style={{ color: "rgba(255,255,255,0.3)" }} />
-              <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>
-                Conversation
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h1 className="text-white font-bold text-2xl tracking-tight">Ava</h1>
+                    <span className="text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider bg-idbi-green-muted text-green-400 border border-idbi-green/30">
+                      AI Advisor
+                    </span>
+                  </div>
+                  <p className="text-xs mb-4 text-text-muted font-medium">Gemini AI · IDBI Bank</p>
+
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => voiceOn ? (speaking ? stopSpeak() : setVoiceOn(false)) : setVoiceOn(true)}
+                      aria-label={speaking ? "Stop speaking" : voiceOn ? "Disable voice" : "Enable voice"}
+                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded-xl text-xs font-bold transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-idbi-green"
+                      style={{ background: voiceOn ? "var(--color-idbi-green-muted)" : "var(--color-surface-hover)", color: voiceOn ? "#4ade80" : "var(--color-text-muted)" }}>
+                      {voiceOn ? <SpeakerHigh size={16} /> : <SpeakerX size={16} />}
+                      {speaking ? "Stop" : voiceOn ? "Voice On" : "Voice Off"}
+                    </button>
+                    <button onClick={toggleListen}
+                      aria-label={listening ? "Stop listening" : "Start voice input"}
+                      className="flex-1 flex items-center justify-center gap-2 min-h-[44px] rounded-xl text-xs font-bold transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-idbi-orange border"
+                      style={{ background: listening ? "rgba(239,68,68,0.2)" : "var(--color-surface-hover)", borderColor: listening ? "rgba(239,68,68,0.4)" : "transparent", color: listening ? "#f87171" : "var(--color-text-muted)" }}>
+                      {listening ? <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}><Microphone size={16} /></motion.div> : <MicrophoneSlash size={16} />}
+                      {listening ? "Listening" : "Speak"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Security Badge */}
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-idbi-green/10 border border-idbi-green/20">
+              <ShieldCheck size={18} weight="fill" className="text-idbi-green flex-shrink-0" />
+              <p className="text-xs text-text-muted font-medium leading-relaxed">
+                Bank-grade secure. No real financial data is shared. This is a hackathon prototype.
               </p>
             </div>
 
-            <div className="space-y-2.5">
-              <AnimatePresence initial={false}>
-                {messages.map((msg, i) => (
-                  <motion.div key={i}
-                    initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                    className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                    {msg.role === "assistant" && (
-                      <img src="/ava-avatar.jpg" alt="Ava"
-                        className="w-6 h-6 rounded-full object-cover object-top flex-shrink-0 mt-0.5"
-                        style={{ border: "1.5px solid #00836C" }} />
-                    )}
-                    <div className="max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed"
-                      style={{
-                        background:           msg.role === "user" ? "linear-gradient(135deg, #00836C, #005a4a)" : "rgba(255,255,255,0.06)",
-                        color:                "white",
-                        border:               msg.role === "assistant" ? "1px solid rgba(255,255,255,0.08)" : "none",
-                        borderBottomRightRadius: msg.role === "user" ? 4 : undefined,
-                        borderBottomLeftRadius:  msg.role === "assistant" ? 4 : undefined,
-                      }}>
-                      {msg.content}
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+            {/* Demo Scenarios */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest mb-3 text-text-muted">Demo Scenarios</p>
+              <div className="grid grid-cols-2 gap-3">
+                {SCENARIOS.map(s => {
+                  const Icon = s.icon;
+                  return (
+                    <motion.button key={s.key} onClick={() => triggerScenario(s.key)} disabled={loading}
+                      whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
+                      className="flex flex-col items-start gap-3 p-4 rounded-2xl text-left transition-all hover:bg-surface-hover disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-idbi-green bg-surface border"
+                      style={{ borderColor: `${s.color}40` }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}25` }}>
+                        <Icon size={20} weight="fill" style={{ color: s.color }} />
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-bold leading-tight mb-1">{s.label}</p>
+                        <p className="text-xs text-text-muted font-medium">{s.sub}</p>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
 
-              {/* Typing indicator */}
-              {loading && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2 items-center">
-                  <img src="/ava-avatar.jpg" alt="Ava"
-                    className="w-6 h-6 rounded-full object-cover object-top"
-                    style={{ border: "1.5px solid #00836C" }} />
-                  <div className="px-3 py-2.5 rounded-2xl rounded-bl-sm"
-                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <div className="flex gap-1">
-                      {[0, 1, 2].map(j => (
-                        <motion.div key={j} className="w-1.5 h-1.5 rounded-full"
-                          style={{ background: "#00836C" }}
-                          animate={{ y: [0, -4, 0] }}
-                          transition={{ repeat: Infinity, duration: 0.7, delay: j * 0.12 }}
-                        />
+          </div>
+
+          {/* Right Column (Desktop: 7 cols) - Chat & Financials */}
+          <div className="md:col-span-7 flex flex-col gap-6 mt-8 md:mt-0">
+
+            {/* Financial Tabs */}
+            <div className="bg-surface border border-border-subtle rounded-3xl p-4 md:p-6 shadow-sm">
+              <div className="flex gap-2 p-1.5 rounded-2xl mb-6 bg-black/20 border border-border-subtle">
+                {([
+                  { k: "overview", label: "Overview", Icon: ChartBar },
+                  { k: "portfolio", label: "Portfolio", Icon: ChartPie },
+                  { k: "transactions", label: "Transactions", Icon: Wallet },
+                ] as const).map(({ k, label, Icon }) => (
+                  <button key={k} onClick={() => setTab(k)}
+                    aria-selected={tab === k}
+                    role="tab"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-idbi-green min-h-[44px]"
+                    style={{
+                      background: tab === k ? "var(--color-idbi-green-muted)" : "transparent",
+                      color: tab === k ? "#4ade80" : "var(--color-text-muted)",
+                      border: tab === k ? "1px solid var(--color-idbi-green-muted)" : "1px solid transparent",
+                    }}>
+                    <Icon size={16} weight={tab === k ? "fill" : "regular"} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait">
+                {/* Overview */}
+                {tab === "overview" && (
+                  <motion.div key="overview" initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-4">
+                    <div className="grid grid-cols-3 gap-3 md:gap-4">
+                      {[
+                        { label: "Net Worth", value: "₹7.5L", Icon: TrendUp, pos: true },
+                        { label: "Income", value: "₹1.25L/mo", Icon: ChartBar, pos: true },
+                        { label: "Savings", value: "Declining", Icon: TrendDown, pos: false },
+                      ].map(({ label, value, Icon, pos }) => (
+                        <div key={label} className="p-4 rounded-2xl bg-surface-hover border border-border-subtle">
+                          <Icon size={18} weight="fill" className="mb-2" style={{ color: pos ? "var(--color-idbi-green)" : "var(--color-idbi-orange)" }} />
+                          <p className="text-white font-black text-sm md:text-lg leading-none">{value}</p>
+                          <p className="text-xs mt-2 text-text-muted font-medium">{label}</p>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                </motion.div>
-              )}
-              <div ref={bottomRef} />
+                    <div className="space-y-3">
+                      {mockGoals.map(goal => {
+                        const pct = Math.round((goal.current / goal.target) * 100);
+                        const Icon = goal.icon;
+                        return (
+                          <div key={goal.id} className="p-4 md:p-5 rounded-2xl bg-surface-hover border border-border-subtle">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <Icon size={18} weight="fill" className="text-idbi-orange" />
+                                <span className="text-white text-sm font-bold">{goal.name}</span>
+                              </div>
+                              <span className="text-sm font-black text-idbi-orange">{pct}%</span>
+                            </div>
+                            <div className="w-full h-2 rounded-full overflow-hidden bg-black/30">
+                              <motion.div className="h-full rounded-full bg-gradient-to-r from-idbi-green to-idbi-orange"
+                                initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }} />
+                            </div>
+                            <div className="flex justify-between mt-3 text-xs font-medium text-text-muted">
+                              <span>{fmt(goal.current)}</span>
+                              <span>{fmt(goal.target)} · {goal.deadline}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Portfolio */}
+                {tab === "portfolio" && (
+                  <motion.div key="portfolio" initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-3">
+                    {mockHoldings.map(h => (
+                      <div key={h.name} className="p-4 md:p-5 rounded-2xl bg-surface-hover border border-border-subtle">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: h.color }} />
+                            <span className="text-white text-sm font-bold">{h.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-green-400">
+                            <ArrowUpRight size={14} />
+                            <span className="text-xs font-black">{h.returns}%</span>
+                          </div>
+                        </div>
+                        <div className="flex items-end justify-between mb-3">
+                          <span className="text-white font-black text-lg">{fmt(h.value)}</span>
+                          <span className="text-xs font-medium text-text-muted">{h.percent}% alloc</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full overflow-hidden bg-black/30">
+                          <motion.div className="h-full rounded-full" style={{ background: h.color }}
+                            initial={{ width: 0 }} animate={{ width: `${h.percent}%` }} transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }} />
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+
+                {/* Transactions */}
+                {tab === "transactions" && (
+                  <motion.div key="transactions" initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-2">
+                    {mockTransactions.map((tx, i) => (
+                      <div key={i} className="flex items-center justify-between p-4 rounded-2xl border"
+                        style={{ background: tx.spike ? "rgba(239,68,68,0.08)" : "var(--color-surface-hover)", borderColor: tx.spike ? "rgba(239,68,68,0.25)" : "var(--color-border-subtle)" }}>
+                        <div>
+                          <p className="text-white text-sm font-bold">{tx.merchant}</p>
+                          <p className="text-xs mt-1 text-text-muted font-medium">
+                            {tx.cat}{tx.spike ? " · Spike" : ""} · {tx.date}
+                          </p>
+                        </div>
+                        <span className="text-sm font-black ml-3" style={{ color: tx.type === "credit" ? "#4ade80" : tx.spike ? "#f87171" : "white" }}>
+                          {tx.type === "credit" ? "+" : "-"}{fmt(tx.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+
+            {/* Chat Interface */}
+            <div className="bg-surface border border-border-subtle rounded-3xl p-4 md:p-6 flex flex-col h-[500px] shadow-sm">
+              <div className="flex items-center gap-2 mb-4 flex-shrink-0">
+                <ChatCircleText size={16} className="text-text-muted" />
+                <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Conversation</p>
+              </div>
+
+              <div className="space-y-4 flex-1 overflow-y-auto pr-2 pb-2">
+                <AnimatePresence initial={false}>
+                  {messages.map((msg, i) => (
+                    <motion.div key={i} initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+                      className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      {msg.role === "assistant" && (
+                        <img src="/ava-avatar.jpg" alt="Ava" className="w-8 h-8 rounded-full object-cover object-top flex-shrink-0 mt-1 border border-idbi-green/50" />
+                      )}
+                      <div className="max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed text-white font-medium shadow-sm"
+                        style={{
+                          background: msg.role === "user" ? "linear-gradient(135deg, var(--color-idbi-green), #005a4a)" : "var(--color-surface-active)",
+                          border: msg.role === "assistant" ? "1px solid var(--color-border-strong)" : "none",
+                          borderBottomRightRadius: msg.role === "user" ? 6 : undefined,
+                          borderBottomLeftRadius: msg.role === "assistant" ? 6 : undefined,
+                        }}>
+                        {msg.content}
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {loading && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 items-center">
+                    <img src="/ava-avatar.jpg" alt="Ava" className="w-8 h-8 rounded-full object-cover object-top border border-idbi-green/50" />
+                    <div className="px-4 py-3.5 rounded-2xl rounded-bl-md bg-surface-active border border-border-strong">
+                      <div className="flex gap-1.5">
+                        {[0, 1, 2].map(j => (
+                          <motion.div key={j} className="w-2 h-2 rounded-full bg-idbi-green"
+                            animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.7, delay: j * 0.12 }} />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                <div ref={bottomRef} />
+              </div>
+
+              {/* Input Bar */}
+              <div className="mt-4 pt-4 border-t border-border-subtle flex-shrink-0">
+                <form onSubmit={handleSubmit} className="flex items-center gap-3">
+                  <button type="button" onClick={toggleListen} aria-label={listening ? "Stop recording" : "Record voice message"}
+                    className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 focus-visible:ring-2 focus-visible:ring-idbi-orange border"
+                    style={{ background: listening ? "rgba(239,68,68,0.2)" : "var(--color-surface-hover)", borderColor: listening ? "rgba(239,68,68,0.4)" : "var(--color-border-subtle)" }}>
+                    {listening ? <motion.div animate={{ scale: [1, 1.25, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}><Microphone size={20} className="text-red-400" /></motion.div> : <Microphone size={20} className="text-text-muted" />}
+                  </button>
+
+                  <input value={input} onChange={e => setInput(e.target.value)} placeholder="Ask Ava anything..." disabled={loading}
+                    className="flex-1 text-white text-sm outline-none px-4 py-2 min-h-[44px] rounded-2xl transition-all bg-surface border border-border-strong focus:border-idbi-green focus:bg-surface-active focus-visible:ring-1 focus-visible:ring-idbi-green"
+                  />
+
+                  <motion.button type="submit" disabled={loading || !input.trim()} aria-label="Send message"
+                    whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
+                    className="min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-idbi-green bg-gradient-to-br from-idbi-green to-[#005a4a] shadow-[0_0_12px_var(--color-idbi-green-glow)]">
+                    <PaperPlaneTilt size={18} weight="fill" className="text-white" />
+                  </motion.button>
+                </form>
+              </div>
+            </div>
+
           </div>
         </div>
-      </div>
-
-      {/* ── Input Bar ────────────────────────────────────────────────────────── */}
-      <div className="sticky bottom-0 z-40 px-4 py-3"
-        style={{ background: "rgba(8,14,13,0.92)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,131,108,0.15)" }}>
-        <form onSubmit={handleSubmit} className="flex items-center gap-2 max-w-md mx-auto">
-          <button type="button" onClick={toggleListen}
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
-            style={{ background: listening ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.07)", border: `1px solid ${listening ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.1)"}` }}>
-            {listening
-              ? <motion.div animate={{ scale: [1, 1.25, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}><Microphone size={16} style={{ color: "#f87171" }} /></motion.div>
-              : <Microphone size={16} style={{ color: "rgba(255,255,255,0.4)" }} />}
-          </button>
-
-          <input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Ask Ava anything about your finances..."
-            disabled={loading}
-            className="flex-1 text-white text-sm outline-none px-3 py-2 rounded-xl transition-all"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}
-          />
-
-          <motion.button type="submit" disabled={loading || !input.trim()}
-            whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-35"
-            style={{ background: "linear-gradient(135deg, #00836C 0%, #005a4a 100%)", boxShadow: "0 0 12px rgba(0,131,108,0.4)" }}>
-            <PaperPlaneTilt size={16} weight="fill" style={{ color: "white" }} />
-          </motion.button>
-        </form>
       </div>
     </div>
   );
