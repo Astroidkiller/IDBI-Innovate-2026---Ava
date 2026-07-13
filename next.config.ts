@@ -3,8 +3,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Ensure proper output for Render.com deployment
-  output: "standalone",
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
   async headers() {
